@@ -11,6 +11,9 @@ module.exports = {
     // interface or API
     twilioNumber: process.env.TWILIO_NUMBER,
 
+    // Company Phone Number to dial, should be 1-800 or other inbound
+    companyNumber: process.env.COMPANY_NUMBER,
+
     // The port your web application will run on
     port: process.env.PORT || 3000,
 };

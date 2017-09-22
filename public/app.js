@@ -13,8 +13,6 @@ $(function() {
         // form
         e.preventDefault();
 
-        alert($('#companyNumber').val());
-
         // Call our ajax endpoint on the server to initialize the phone call
         $.ajax({
             url: '/call',

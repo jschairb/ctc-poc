@@ -38,8 +38,8 @@ module.exports = function(app) {
         // This should be the publicly accessible URL for your application
         // Here, we just use the host for the application making the request,
         // but you can hard code it or use something different if need be
-        var companyNumber = '+1 614-937-7142'; //request.body.companyNumber;
-        var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(companyNumber)
+        var companyNumber = config.companyNumber;
+        var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(companyNumber);
 
         var options = {
             to: request.body.phoneNumber,
