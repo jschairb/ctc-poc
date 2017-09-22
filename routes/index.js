@@ -67,8 +67,11 @@ module.exports = function(app) {
         var salesNumber = request.params.salesNumber;
         var twimlResponse = new VoiceResponse();
 
-        twimlResponse.say('Thanks for contacting our sales department. Our ' +
-                          'next available representative will take your call. ',
+        twimlResponse.say('Thank you for contacting Rackspace, Kerry.' +
+                          'This alpha feature requires your feedback to keep us' +
+                          'the #1 managed cloud company, please stay on the line afterwards' +
+                          'for quick, 2 question survey. We will now connect you with Josh' +
+                          'regarding your billing question.',
                           { voice: 'alice' });
 
         twimlResponse.dial(salesNumber);
