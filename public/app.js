@@ -1,7 +1,7 @@
 // Execute JavaScript on page load
 $(function() {
     // Initialize phone number text input plugin
-    $('#phoneNumber, #salesNumber').intlTelInput({
+    $('#phoneNumber, #companyNumber').intlTelInput({
         responsiveDropdown: true,
         autoFormat: true,
         utilsScript: '/vendor/intl-phone/libphonenumber/build/utils.js'
@@ -20,7 +20,7 @@ $(function() {
             dataType: 'json',
             data: {
                 phoneNumber: $('#phoneNumber').val(),
-                salesNumber: $('#salesNumber').val()
+                companyNumber: $('#companyNumber').val()
             }
         }).done(function(data) {
             // The JSON sent back from the server will contain a success message

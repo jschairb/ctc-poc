@@ -1,25 +1,50 @@
 doctype html
 html(lang="en")
   head
-    title Click To Call Tutorial
+    title Click-To-Call - Twilio
+
+    meta(charset='utf-8')
+    meta(name='viewport',
+      content='width=device-width, initial-scale=1, shrink-to-fit=no')
 
     // We use Twitter Bootstrap as the default styling for our page
-    link(rel='stylesheet', 
+    link(rel='stylesheet',
       href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css')
-    link(rel='stylesheet', 
+    link(rel='stylesheet',
       href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css')
 
     // Include CSS for our third-party telephone input jQuery plugin
     link(rel='stylesheet', href='/vendor/intl-phone/css/intlTelInput.css')
-  body
-    .container
-      h1 Click To Call
-      p.
-        Click To Call converts your website's users into engaged customers by 
-        creating an easy way for your customers to contact your sales and 
-        support teams right on your website.
 
-      p Here's an example of how it's done!
+    // Include CSS for this application
+    link(rel='stylesheet', href='/ctc.css')
+
+  body
+    nav(class="navbar navbar-inverse navbar-fixed-top", role="navigation")
+      .container
+        .navbar-header
+          button(type="button", class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse")
+            span(class='sr-only')
+              Toggle Navigation
+            span.icon-bar
+          a(class='navbar-brand', href='/').
+            Click-To-Call
+
+        .collapse.navbar-collapse
+          ul(class="nav navbar-nav")
+            li.active
+              a(href="/").
+                Home
+
+    .container
+      h1 Click To Call Demonstration - Twilio
+      p.
+        Click To Call allows customers to engage with support by requesting
+        a phone call from a support agent. The information collected from the
+        customer at the time of request allows the support agent to provide
+        personalized and contextualized engagement.
+
+      p This example uses Twilio.
 
       hr
 
@@ -28,20 +53,19 @@ html(lang="en")
         .col-md-12
           form(id='contactForm', role='form')
             .form-group
-              h3 Call Sales
+              h3 Request A Call
               p.help-block.
-                Are you interested in impressing your friends and confounding 
-                your enemies? Enter your phone number below, and our team will 
+                Please fill out this simple form and a support agent will
                 contact you right away.
             label Your Number
             .form-group
-              input.form-control(type='text', id='phoneNumber', 
-                placeholder='(651) 555-7889')
-            label Sales Team Number 
+              input.form-control(type='text', id='phoneNumber',
+                placeholder='(210) 555-0100')
+            label Sales Team Number
             .form-group
-              input.form-control(type='text', id='salesNumber', 
+              input.form-control(type='text', id='companyNumber',
                 placeholder='(651) 555-7889')
-            button(type='submit', class='btn btn-default') Contact Sales
+            button(type='submit', class='btn btn-default') Request A Call
 
     // Include page dependencies
     script(src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')

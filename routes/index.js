@@ -38,8 +38,8 @@ module.exports = function(app) {
         // This should be the publicly accessible URL for your application
         // Here, we just use the host for the application making the request,
         // but you can hard code it or use something different if need be
-        var salesNumber = request.body.salesNumber;
-        var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(salesNumber)
+        var companyNumber = request.body.companyNumber;
+        var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(companyNumber)
 
         var options = {
             to: request.body.phoneNumber,
@@ -53,7 +53,7 @@ module.exports = function(app) {
           .then((message) => {
             console.log(message.responseText);
             response.send({
-                message: 'Thank you! We will be calling you shortly.',
+                message: 'Thank you, someone will contact you soon from 415-650-1953.',
             });
           })
           .catch((error) => {
@@ -63,8 +63,8 @@ module.exports = function(app) {
     });
 
     // Return TwiML instuctions for the outbound call
-    app.post('/outbound/:salesNumber', function(request, response) {
-        var salesNumber = request.params.salesNumber;
+    app.post('/outbound/:companyNumber', function(request, response) {
+        var companyNumber = request.params.companyNumber;
         var twimlResponse = new VoiceResponse();
 
         twimlResponse.say('Thank you for contacting Rackspace, Kerry.' +
@@ -74,7 +74,7 @@ module.exports = function(app) {
                           'regarding your billing question.',
                           { voice: 'alice' });
 
-        twimlResponse.dial(salesNumber);
+        twimlResponse.dial(companyNumber);
 
         response.send(twimlResponse.toString());
     });
