@@ -38,7 +38,7 @@ module.exports = function(app) {
         // This should be the publicly accessible URL for your application
         // Here, we just use the host for the application making the request,
         // but you can hard code it or use something different if need be
-        var companyNumber = request.body.companyNumber;
+        var companyNumber = '+1 614-937-7142'; //request.body.companyNumber;
         var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(companyNumber)
 
         var options = {
@@ -67,11 +67,8 @@ module.exports = function(app) {
         var companyNumber = request.params.companyNumber;
         var twimlResponse = new VoiceResponse();
 
-        twimlResponse.say('Thank you for contacting Rackspace, Kerry.' +
-                          'This alpha feature requires your feedback to keep us' +
-                          'the #1 managed cloud company, please stay on the line afterwards' +
-                          'for quick, 2 question survey. We will now connect you with Josh' +
-                          'regarding your billing question.',
+        twimlResponse.say('Thank you for using our Click-To-Call feature' +
+                          'We will connect you with someone right now.',
                           { voice: 'alice' });
 
         twimlResponse.dial(companyNumber);

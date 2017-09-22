@@ -13,14 +13,15 @@ $(function() {
         // form
         e.preventDefault();
 
+        alert($('#companyNumber').val());
+
         // Call our ajax endpoint on the server to initialize the phone call
         $.ajax({
             url: '/call',
             method: 'POST',
             dataType: 'json',
             data: {
-                phoneNumber: $('#phoneNumber').val(),
-                companyNumber: $('#companyNumber').val()
+                phoneNumber: $('#phoneNumber').val()
             }
         }).done(function(data) {
             // The JSON sent back from the server will contain a success message
