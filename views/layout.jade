@@ -1,0 +1,50 @@
+doctype html
+html(lang="en")
+  head
+    title Click-To-Call - Twilio
+
+    meta(charset='utf-8')
+    meta(name='viewport',
+      content='width=device-width, initial-scale=1, shrink-to-fit=no')
+
+    // We use Twitter Bootstrap as the default styling for our page
+    link(rel='stylesheet',
+      href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css')
+    link(rel='stylesheet',
+      href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css')
+
+    // Include CSS for our third-party telephone input jQuery plugin
+    link(rel='stylesheet', href='/vendor/intl-phone/css/intlTelInput.css')
+
+    // Include CSS for this application
+    link(rel='stylesheet', href='/ctc.css')
+
+  body
+    nav(class="navbar navbar-inverse navbar-fixed-top", role="navigation")
+      .container
+        .navbar-header
+          button(type="button", class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse")
+            span(class='sr-only')
+              Toggle Navigation
+            span.icon-bar
+          a(class='navbar-brand', href='/').
+            Click-To-Call
+
+        .collapse.navbar-collapse
+          ul(class="nav navbar-nav")
+            li.active
+              a(href="/").
+                Home
+            li
+              a(href="/debug").
+                Debug
+
+    block content
+
+    // Include page dependencies
+    script(src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
+    script(src='/vendor/intl-phone/js/intlTelInput.min.js')
+    script(src='/vendor/notify.min.js')
+
+    // Our app's front-end JavaScript logic
+    script(src='/app.js')

@@ -1,72 +1,31 @@
-doctype html
-html(lang="en")
-  head
-    title Click-To-Call - Twilio
+extends ./layout.jade
 
-    meta(charset='utf-8')
-    meta(name='viewport',
-      content='width=device-width, initial-scale=1, shrink-to-fit=no')
+block content
+  .container
+    h1 Twilio
+    p.
+      Click To Call allows customers to engage with support by requesting
+      a phone call from a support agent. The information collected from the
+      customer at the time of request allows the support agent to provide
+      personalized and contextualized engagement.
 
-    // We use Twitter Bootstrap as the default styling for our page
-    link(rel='stylesheet',
-      href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css')
-    link(rel='stylesheet',
-      href='//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css')
+    p This example uses Twilio.
 
-    // Include CSS for our third-party telephone input jQuery plugin
-    link(rel='stylesheet', href='/vendor/intl-phone/css/intlTelInput.css')
+    hr
 
-    // Include CSS for this application
-    link(rel='stylesheet', href='/ctc.css')
+    // C2C contact form
+    .row
+      .col-md-12
+        form(id='contactForm', role='form')
+          .form-group
+            h3 Request A Call
+            p.help-block.
+              Please fill out this simple form and a support agent will
+              contact you right away.
 
-  body
-    nav(class="navbar navbar-inverse navbar-fixed-top", role="navigation")
-      .container
-        .navbar-header
-          button(type="button", class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse")
-            span(class='sr-only')
-              Toggle Navigation
-            span.icon-bar
-          a(class='navbar-brand', href='/').
-            Click-To-Call
+          label Your Number
+          .form-group
+            input.form-control(type='tel', id='phoneNumber',
+              placeholder='(210) 555-0100')
 
-        .collapse.navbar-collapse
-          ul(class="nav navbar-nav")
-            li.active
-              a(href="/").
-                Home
-
-    .container
-      h1 Click To Call Demonstration - Twilio
-      p.
-        Click To Call allows customers to engage with support by requesting
-        a phone call from a support agent. The information collected from the
-        customer at the time of request allows the support agent to provide
-        personalized and contextualized engagement.
-
-      p This example uses Twilio.
-
-      hr
-
-      // C2C contact form
-      .row
-        .col-md-12
-          form(id='contactForm', role='form')
-            .form-group
-              h3 Request A Call
-              p.help-block.
-                Please fill out this simple form and a support agent will
-                contact you right away.
-            label Your Number
-            .form-group
-              input.form-control(type='tel', id='phoneNumber',
-                placeholder='(210) 555-0100')
-            button(type='submit', id='request-call-btn', class='btn btn-default') Request A Call
-
-    // Include page dependencies
-    script(src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
-    script(src='/vendor/intl-phone/js/intlTelInput.min.js')
-    script(src='/vendor/notify.min.js')
-
-    // Our app's front-end JavaScript logic
-    script(src='/app.js')
+          button(type='submit', id='request-call-btn', class='btn btn-default') Request A Call

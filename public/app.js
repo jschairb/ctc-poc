@@ -73,10 +73,7 @@ $(function() {
                                           });
 
         }).fail(function(error) {
-            $('#request-call-btn').notify(JSON.stringify(error),
-                                          {
-                                              className: 'error'
-                                          });
+            alert(JSON.stringify(error));
         });
     });
 });
