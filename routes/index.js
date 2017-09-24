@@ -6,10 +6,38 @@ var twilio = require('twilio');
 var VoiceResponse = twilio.twiml.VoiceResponse;
 var config = require('../config');
 
+// Copied from docs, unsure why const vs require
+const uuidv1 = require('uuid/v1');
 
 // Create a Twilio REST API client for authenticated requests to Twilio
-var client = twilio(config.accountSid, config.authToken);
+var twilio_client = twilio(config.accountSid, config.authToken);
 
+// Create a Mongoose object to connect with MongoDB
+var mongoose = require('mongoose');
+
+// Makes connection asynchronously.  Mongoose will queue up database
+// operations and release them when the connection is complete.
+mongoose.connect(config.mongodbURI, function (err, res) {
+  if (err) {
+    console.log ('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
+  } else {
+    console.log ('Succeeded connected to: ' + config.mongodbURI);
+  }
+});
+
+var clickToCallSchema = new mongoose.Schema({
+    callbackURL: String,
+    phoneNumbers: {
+        company: String,
+        from: String,
+        to: String
+    },
+    timestampCreated: { type: Date, default: Date.now },
+    timestampUpdated: { type: Date, default: Date.now },
+    uuid: String
+});
+
+var clickToCall = mongoose.model('ClickToCall', clickToCallSchema);
 
 // Configure application routes
 module.exports = function(app) {
@@ -22,7 +50,7 @@ module.exports = function(app) {
 
     // Parse incoming request bodies as form-encoded
     app.use(bodyParser.urlencoded({
-        extended: true,
+        extended: true
     }));
 
     // Use morgan for HTTP request logging
@@ -35,25 +63,38 @@ module.exports = function(app) {
 
     // Handle an AJAX POST request to place an outbound call
     app.post('/call', function(request, response) {
+        var uuid = uuidv1();
+
         // This should be the publicly accessible URL for your application
         // Here, we just use the host for the application making the request,
         // but you can hard code it or use something different if need be
-        var companyNumber = config.companyNumber;
-        var url = 'http://' + request.headers.host + '/outbound/' + encodeURIComponent(companyNumber);
+        var callbackURL = 'https://' + request.headers.host + '/callbacks/' + encodeURIComponent(uuid);
 
-        var options = {
-            to: request.body.phoneNumber,
-            from: config.twilioNumber,
-            url: url,
+        var clickToCallRecord = new clickToCall({
+            callbackURL: callbackURL,
+            phoneNumbers: {
+                company: config.companyNumber,
+                from: config.twilioNumber,
+                to: request.body.phoneNumber
+            },
+            uuid: uuid
+        });
+
+        clickToCallRecord.save(function (err) {if (err) console.log ('Error on save!')});
+
+        var twilioCallOptions = {
+            from: clickToCallRecord.phoneNumbers.from,
+            to: clickToCallRecord.phoneNumbers.to,
+            url: clickToCallRecord.callbackURL
         };
 
         // Place an outbound call to the user, using the TwiML instructions
         // from the /outbound route
-        client.calls.create(options)
+        twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
             console.log(message.responseText);
             response.send({
-                message: 'Thank you, someone will contact you soon from 415-650-1953.',
+                message: 'Thank you, someone will contact you soon from 415-650-1953.'
             });
           })
           .catch((error) => {
@@ -63,8 +104,20 @@ module.exports = function(app) {
     });
 
     // Return TwiML instuctions for the outbound call
-    app.post('/outbound/:companyNumber', function(request, response) {
-        var companyNumber = request.params.companyNumber;
+    app.post('/callbacks/:uuid', function(request, response) {
+        var uuid = request.params.uuid;
+
+        console.log(request.body);
+
+        var clickToCallRecord = clickToCall.findOne({uuid: uuid}).exec(function(err, result) {
+            if (!err) {
+                console.log(result);
+            } else {
+                console.log('failed query');
+            };
+        });
+
+        var companyNumber = clickToCallRecord.phoneNumbers.company;
         var twimlResponse = new VoiceResponse();
 
         twimlResponse.say('Thank you for using our Click-To-Call feature' +

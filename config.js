@@ -14,6 +14,9 @@ module.exports = {
     // Company Phone Number to dial, should be 1-800 or other inbound
     companyNumber: process.env.COMPANY_NUMBER,
 
+    // MongoDB connection string
+    mongodbURI: process.env.MONGODB_URI,
+
     // The port your web application will run on
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 3000
 };
