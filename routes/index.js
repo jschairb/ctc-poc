@@ -133,7 +133,7 @@ module.exports = function(app) {
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
               console.log('Message:');
-              console.log(message);
+              console.log(message.responseText);
               var timestamp = Date.now();
 
               Call.update({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
