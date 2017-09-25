@@ -158,29 +158,26 @@ module.exports = function(app) {
 
     // Return TwiML instuctions for the outbound call
     app.post('/callbacks/:uuid', function(request, response) {
-        console.log('UUID:');
         var uuid = request.params.uuid;
-        console.log(uuid);
 
         // console.log(request.body);
-        var call = Call.findOne({uuid: uuid}).exec(function(err, result) {
+        Call.findOne({uuid: uuid}).exec(function(err, call) {
             if (!err) {
-                // console.log(result);
+                var companyNumber = call.phoneNumbers.company;
+                var twimlResponse = new VoiceResponse();
+
+                twimlResponse.say('Thank you for using our Click-To-Call feature' +
+                                  'We will connect you with someone right now.',
+                                  { voice: 'alice' });
+
+                twimlResponse.dial(companyNumber);
+
+                response.send(twimlResponse.toString());
             } else {
-                console.log('failed query');
+                console.log(err);
+                response.status(500).send(err);
             };
         });
-
-        var companyNumber = call.phoneNumbers.company;
-        var twimlResponse = new VoiceResponse();
-
-        twimlResponse.say('Thank you for using our Click-To-Call feature' +
-                          'We will connect you with someone right now.',
-                          { voice: 'alice' });
-
-        twimlResponse.dial(companyNumber);
-
-        response.send(twimlResponse.toString());
     });
 
     // Probably need to make another endpoint for the other hooks.
