@@ -132,11 +132,11 @@ module.exports = function(app) {
         // from the /outbound route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
-              console.log(message.responseText);
+              // console.log(message.responseText);
               var timestamp = Date.now;
 
-              Call.findOneAndUpdate({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
-                  if (err) console.log('Error on Call update!');
+              Call.update({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
+                  if (err) console.log(err);
               });
 
               // Be sure Twilio Response attrs don't overwrite these
