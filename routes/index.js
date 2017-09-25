@@ -155,13 +155,13 @@ module.exports = function(app) {
                    2. Personalize greeting
                 */
 
-                var callEvent = new CallEvent(response.body);
+                var callEvent = new CallEvent(request.body);
                 callEvent.CallUUID = uuid;
 
                 console.log('RESPONSE BODY:');
-                console.log(response.body);
+                console.log(request.body);
 
-                console.log('CALLEVENT:');
+                console.log('CALL EVENT:');
                 console.log(callEvent);
 
                 callEvent.save(function (err) {if (err) console.log('error on CallEvent save!')});
