@@ -142,6 +142,8 @@ module.exports = function(app) {
               // Be sure Twilio Response attrs don't overwrite these
               var callEvent = new CallEvent(message.responseText);
               callEvent.CallUUID = uuid;
+              console.log(callEvent);
+
               callEvent.save(function (err) {if (err) console.log ('Error on CallEvent save!')});
 
               response.send({
@@ -159,7 +161,7 @@ module.exports = function(app) {
         var uuid = request.params.uuid;
         console.log(uuid);
 
-        console.log(request.body);
+        // console.log(request.body);
         var call = Call.findOne({uuid: uuid}).exec(function(err, result) {
             if (!err) {
                 console.log(result);
