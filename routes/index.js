@@ -25,7 +25,7 @@ mongoose.connect(config.mongodbURI, function (err, res) {
   }
 });
 
-var clickToCallSchema = new mongoose.Schema({
+var callSchema = new mongoose.Schema({
     callbackURL: String,
     phoneNumbers: {
         company: String,
@@ -36,8 +36,48 @@ var clickToCallSchema = new mongoose.Schema({
     timestampUpdated: { type: Date, default: Date.now },
     uuid: String
 });
+var Call = mongoose.model('Call', callSchema);
 
-var clickToCall = mongoose.model('ClickToCall', clickToCallSchema);
+// This represents the exact schema passed from a Twilio callback. I've added
+// SIP attributes, even though I don't think we'll be receiving any. Should
+// errors around missing values pop up, there might be a host of
+// SipHeader_<name> fields that I couldn't add because they're variable.
+// Source: https://www.twilio.com/docs/api/twiml/twilio_request
+var callEventSchema = new mongoose.Schema({
+    Called: String,
+    ToState: String,
+    CallerCountry: String,
+    Direction: String,
+    CallerState: String,
+    ToZip: String,
+    CallSid: String,
+    To: String,
+    CallerZip: String,
+    ToCountry: String,
+    ApiVersion: String,
+    CalledZip: String,
+    CalledCity: String,
+    CallStatus: String,
+    From: String,
+    AccountSid: String,
+    CalledCountry: String,
+    CallerCity: String,
+    Caller: String,
+    FromCountry: String,
+    ToCity: String,
+    FromCity: String,
+    CalledState: String,
+    FromZip: String,
+    FromState: String,
+    ParentCallSid: String,
+    SipDomain: String,
+    SipUsername: String,
+    SipCallId: String,
+    SipSourceIp: String,
+    CallUUID: String,
+    CreatedAt: { type: Date, default: Date.now }
+});
+var CallEvent = mongoose.model('CallEvent', callEventSchema);
 
 // Configure application routes
 module.exports = function(app) {
@@ -70,7 +110,7 @@ module.exports = function(app) {
         // but you can hard code it or use something different if need be
         var callbackURL = 'https://' + request.headers.host + '/callbacks/' + encodeURIComponent(uuid);
 
-        var clickToCallRecord = new clickToCall({
+        var call = new Call({
             callbackURL: callbackURL,
             phoneNumbers: {
                 company: config.companyNumber,
@@ -80,26 +120,39 @@ module.exports = function(app) {
             uuid: uuid
         });
 
-        clickToCallRecord.save(function (err) {if (err) console.log ('Error on save!')});
+        call.save(function (err) {if (err) console.log ('Error on Call save!')});
 
         var twilioCallOptions = {
-            from: clickToCallRecord.phoneNumbers.from,
-            to: clickToCallRecord.phoneNumbers.to,
-            url: clickToCallRecord.callbackURL
+            from: call.phoneNumbers.from,
+            to: call.phoneNumbers.to,
+            url: call.callbackURL
         };
 
         // Place an outbound call to the user, using the TwiML instructions
         // from the /outbound route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
-            console.log(message.responseText);
-            response.send({
-                message: 'Thank you, someone will contact you soon from 415-650-1953.'
-            });
-          })
-          .catch((error) => {
-            console.log(error);
-            response.status(500).send(error);
+              console.log(message.responseText);
+              var timestamp = Date.now;
+
+              Call.findOneAndUpdate({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
+                  if (err) console.log('Error on Call update!');
+              });
+
+              // Be sure Twilio Response attrs don't overwrite these
+              var callEventAttributes = Object.assign({
+                  CallUUID: uuid
+              }, message.responseText);
+
+              var callEvent = new CallEvent(callEventAttributes);
+              callEvent.save(function (err) {if (err) console.log ('Error on CallEvent save!')});
+
+              response.send({
+                  message: 'Thank you, someone will contact you soon from 415-650-1953.'
+              });
+          }).catch((error) => {
+              console.log(error);
+              response.status(500).send(error);
           });
     });
 
@@ -109,7 +162,7 @@ module.exports = function(app) {
 
         console.log(request.body);
 
-        var clickToCallRecord = clickToCall.findOne({uuid: uuid}).exec(function(err, result) {
+        var call = Call.findOne({uuid: uuid}).exec(function(err, result) {
             if (!err) {
                 console.log(result);
             } else {
@@ -117,7 +170,7 @@ module.exports = function(app) {
             };
         });
 
-        var companyNumber = clickToCallRecord.phoneNumbers.company;
+        var companyNumber = call.phoneNumbers.company;
         var twimlResponse = new VoiceResponse();
 
         twimlResponse.say('Thank you for using our Click-To-Call feature' +
@@ -128,4 +181,6 @@ module.exports = function(app) {
 
         response.send(twimlResponse.toString());
     });
+
+    // Probably need to make another endpoint for the other hooks.
 };
