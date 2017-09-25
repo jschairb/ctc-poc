@@ -132,7 +132,8 @@ module.exports = function(app) {
         // from the /outbound route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
-              // console.log(message.responseText);
+              console.log('Message:');
+              console.log(message);
               var timestamp = Date.now();
 
               Call.update({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
@@ -164,7 +165,7 @@ module.exports = function(app) {
         // console.log(request.body);
         var call = Call.findOne({uuid: uuid}).exec(function(err, result) {
             if (!err) {
-                console.log(result);
+                // console.log(result);
             } else {
                 console.log('failed query');
             };
