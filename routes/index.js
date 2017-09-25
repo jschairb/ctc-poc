@@ -164,7 +164,7 @@ module.exports = function(app) {
 
                 twimlResponse.say('Thank you for using our Click-To-Call feature' +
                                   'We will connect you with someone right now.',
-                                  { voice: 'alice' });
+                                  { voice: 'man' });
 
                 twimlResponse.dial(companyNumber);
 
