@@ -157,6 +157,13 @@ module.exports = function(app) {
 
                 var callEvent = new CallEvent(response.body);
                 callEvent.CallUUID = uuid;
+
+                console.log('RESPONSE BODY:');
+                console.log(response.body);
+
+                console.log('CALLEVENT:');
+                console.log(callEvent);
+
                 callEvent.save(function (err) {if (err) console.log('error on CallEvent save!')});
 
                 var companyNumber = call.phoneNumbers.company;
