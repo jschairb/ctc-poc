@@ -4,7 +4,18 @@
 </a>
 
 
-# Click to Call - Node.js
+# Click-To-Call
+
+## Instructions
+
+* Copy `.example.env` to `.env` and change values
+* `npm install`
+* `node app.js`
+
+## Resources
+
+* https://www.twilio.com/docs/api/voice/making-calls
+
 
 This is an application example implementing Click to Call using Twilio.  For a
 step-by-step tutorial, [visit this link](https://twilio.com/docs/howto/click-to-call).
@@ -77,7 +88,7 @@ Are you using Windows or Linux? You can learn more about how to set variables [h
 
 ### Development
 
-Getting your local environment setup to work with this app is easy.  
+Getting your local environment setup to work with this app is easy.
 After you configure your app with the steps above use this guide to
 get it going locally.
 
