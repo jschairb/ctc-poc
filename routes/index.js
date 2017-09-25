@@ -120,7 +120,7 @@ module.exports = function(app) {
             uuid: uuid
         });
 
-        call.save(function (err) {if (err) console.log ('Error on Call save!')});
+        call.save(function (err) {if (err) console.log('Error on Call save!')});
 
         var twilioCallOptions = {
             from: call.phoneNumbers.from,
@@ -129,26 +129,13 @@ module.exports = function(app) {
         };
 
         // Place an outbound call to the user, using the TwiML instructions
-        // from the /outbound route
+        // from the /callbacks route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
-              console.log('Message:');
-              console.log(message.responseText);
-              var timestamp = Date.now();
-
-              Call.update({uuid: uuid}, {timestampUpdated: timestamp}, function (err) {
-                  if (err) console.log(err);
-              });
-
-              // Be sure Twilio Response attrs don't overwrite these
-              var callEvent = new CallEvent(message.responseText);
-              callEvent.CallUUID = uuid;
-              console.log(callEvent);
-
-              callEvent.save(function (err) {if (err) console.log ('Error on CallEvent save!')});
-
+              // message has a variety of interesting values, but I'm going to just use the
+              // webhooks to handle all the CallEvent tracking.
               response.send({
-                  message: 'Thank you, someone will contact you soon from 415-650-1953.'
+                  message: `Thank you, someone will contact you soon from ${twilioCallOptions.from}.`
               });
           }).catch((error) => {
               console.log(error);
@@ -159,10 +146,19 @@ module.exports = function(app) {
     // Return TwiML instuctions for the outbound call
     app.post('/callbacks/:uuid', function(request, response) {
         var uuid = request.params.uuid;
+        console.log(request.body);
 
-        // console.log(request.body);
         Call.findOne({uuid: uuid}).exec(function(err, call) {
             if (!err) {
+                /*
+                   1. Create a new CallEvent for UUID
+                   2. Personalize greeting
+                */
+
+                var callEvent = new CallEvent(response.body);
+                callEvent.CallUUID = uuid;
+                callEvent.save(function (err) {if (err) console.log('error on CallEvent save!')});
+
                 var companyNumber = call.phoneNumbers.company;
                 var twimlResponse = new VoiceResponse();
 
@@ -179,6 +175,4 @@ module.exports = function(app) {
             };
         });
     });
-
-    // Probably need to make another endpoint for the other hooks.
 };
