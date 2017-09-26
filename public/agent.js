@@ -4,7 +4,7 @@ let token,
 
 $(() => {
 
-    $('#agentForm').on('submit', (e) => {
+    $('#login-button').on('click', (e) => {
         e.preventDefault();
 
         // log('Requesting Capability Token...');

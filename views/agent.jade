@@ -18,32 +18,26 @@ block content
     // C2C contact form
     .row
         .col-md-6
-            form(id='agentForm', role='form')
-                .form-group
-                h3 Soft Phone
-                p.help-block.
-                    Please fill out this simple form and a support agent will
-                    contact you right away.
-
-                label Your Name
-                .form-group
-                input.form-control(type='text', id='agentName',
-                    placeholder='Agent Name')
-
-                button(type='submit', id='request-call-btn', class='btn btn-default') Login
+            h2 Control
+            hr
+            .input-group
+                input.form-control(type='text', id='agentName', placeholder='Agent Name')
+                span.input-group-btn
+                    button#login-button.btn.btn-default(type='button') Login
+            &nbsp;
+            button#accept.btn.btn-lg.btn-block.btn-success(disabled, type='button') Accept
+            button#hold.btn.btn-lg.btn-block.btn-warning(disabled, type='button') Hold
 
         .col-md-6
-            #state
-                .alert.alert-info
-                    strong Agent: 
-                    span#agent-name &empty;
-                .alert.alert-warning
-                    strong Alerting Call: 
-                    span#alert &empty;
-                .alert.alert-success
-                    strong Active Call: 
-                    span#active &empty;
-            #control
-                .btn-group(role='group')
-                    button#accept.btn.btn-lg.btn-success(disabled, type='button') Accept
-                    button#hold.btn.btn-lg.btn-warning(disabled, type='button') Hold
+            h2 Status
+            hr
+            .alert.alert-info
+                strong Agent: 
+                span#agent-name &empty;
+            .alert.alert-warning
+                strong Alerting Call: 
+                span#alert &empty;
+            .alert.alert-success
+                strong Active Call: 
+                span#active &empty;
+
