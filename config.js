@@ -14,6 +14,9 @@ module.exports = {
     // Agent Phone Number to dial, should be 1-800 or other inbound
     agentNumber: process.env.AGENT_NUMBER,
 
+    // An application SID is the way that a Twilio application is identified.
+    twimlAppSid: process.env.TWIML_APP_SID,
+
     // MongoDB connection string
     mongodbURI: process.env.MONGODB_URI,
 

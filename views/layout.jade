@@ -35,6 +35,12 @@ html(lang="en")
             li.active
               a(href="/").
                 Home
+            li
+              a(href="/agent").
+                Agent
+            li
+              a(href="/debug").
+                Debug
 
     block content
 
@@ -42,6 +48,10 @@ html(lang="en")
     script(src='//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
     script(src='/vendor/intl-phone/js/intlTelInput.min.js')
     script(src='/vendor/notify.min.js')
+    // TODO Only load when softphone is needed; i.e. agents, not customers
+    script(type="text/javascript", 
+      src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js")
 
     // Our app's front-end JavaScript logic
     script(src='/app.js')
+    script(src='/agent.js')

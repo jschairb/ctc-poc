@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var twilio = require('twilio');
 var VoiceResponse = twilio.twiml.VoiceResponse;
 var config = require('../config');
+var token = require('./token');
 
 // Copied from docs, unsure why const vs require
 const uuidv1 = require('uuid/v1');
@@ -187,7 +188,7 @@ module.exports = function(app) {
 
                 twimlResponse.say('Thank you for using our Click-To-Call feature. ' +
                                   'We will connect you with someone right now.',
-                                  { voice: 'man' });
+                                  { voice: 'man' }); // TODO check privilege
 
                 twimlResponse.dial(agentNumber);
 
@@ -202,5 +203,14 @@ module.exports = function(app) {
     // Twilio Voice Call Status Change Webhook
     app.post('/events/voice', function(request, response) {
         response.status(200).send('OK');
+    });
+    
+    app.get('/agent', (request, response) => {
+        response.render('agent');
+    });
+
+    app.get('/token', (request, response) => {
+        let tok = token.generate(request.query.agentName)
+        response.send(tok);
     });
 };
