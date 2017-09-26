@@ -17,7 +17,7 @@ var mongoose = require('mongoose');
 
 // Makes connection asynchronously.  Mongoose will queue up database
 // operations and release them when the connection is complete.
-mongoose.connect(config.mongodbURI, function (err, res) {
+mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res) {
   if (err) {
     console.log ('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
   } else {
