@@ -11,8 +11,8 @@ module.exports = {
     // interface or API
     twilioNumber: process.env.TWILIO_NUMBER,
 
-    // Company Phone Number to dial, should be 1-800 or other inbound
-    companyNumber: process.env.COMPANY_NUMBER,
+    // Agent Phone Number to dial, should be 1-800 or other inbound
+    agentNumber: process.env.AGENT_NUMBER,
 
     // MongoDB connection string
     mongodbURI: process.env.MONGODB_URI,

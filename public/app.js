@@ -1,7 +1,8 @@
 // Execute JavaScript on page load
 $(function() {
-    // Initialize phone number text input plugin
-    $('#phoneNumber, #companyNumber').intlTelInput({
+    // Initialize phone number text input plugin,
+    // add more fields with a comma separated list.
+    $('#phoneNumber').intlTelInput({
         responsiveDropdown: true,
         autoFormat: true,
         utilsScript: '/vendor/intl-phone/libphonenumber/build/utils.js'

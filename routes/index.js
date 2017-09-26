@@ -28,7 +28,7 @@ mongoose.connect(config.mongodbURI, function (err, res) {
 var callSchema = new mongoose.Schema({
     callbackURL: String,
     phoneNumbers: {
-        company: String,
+        agent: String,
         from: String,
         to: String
     },
@@ -113,7 +113,7 @@ module.exports = function(app) {
         var call = new Call({
             callbackURL: callbackURL,
             phoneNumbers: {
-                company: config.companyNumber,
+                agent: config.agentNumber,
                 from: config.twilioNumber,
                 to: request.body.phoneNumber
             },
@@ -158,22 +158,16 @@ module.exports = function(app) {
                 var callEvent = new CallEvent(request.body);
                 callEvent.CallUUID = uuid;
 
-                console.log('RESPONSE BODY:');
-                console.log(request.body);
-
-                console.log('CALL EVENT:');
-                console.log(callEvent);
-
                 callEvent.save(function (err) {if (err) console.log('error on CallEvent save!')});
 
-                var companyNumber = call.phoneNumbers.company;
+                var agentNumber = call.phoneNumbers.agent;
                 var twimlResponse = new VoiceResponse();
 
                 twimlResponse.say('Thank you for using our Click-To-Call feature' +
                                   'We will connect you with someone right now.',
                                   { voice: 'man' });
 
-                twimlResponse.dial(companyNumber);
+                twimlResponse.dial(agentNumber);
 
                 response.send(twimlResponse.toString());
             } else {
