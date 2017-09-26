@@ -32,6 +32,7 @@ var callSchema = new mongoose.Schema({
         from: String,
         to: String
     },
+    ticketNumber: String,
     timestampCreated: { type: Date, default: Date.now },
     timestampUpdated: { type: Date, default: Date.now },
     uuid: String
@@ -117,6 +118,7 @@ module.exports = function(app) {
                 from: config.twilioNumber,
                 to: request.body.phoneNumber
             },
+            ticketNumber: request.body.ticketNumber,
             uuid: uuid
         });
 

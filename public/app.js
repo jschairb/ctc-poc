@@ -68,7 +68,8 @@ $(function() {
             method: 'POST',
             dataType: 'json',
             data: {
-                phoneNumber: $('#phoneNumber').val().replace(/\s/g,'').replace(/-/g,'')
+                phoneNumber: $('#phoneNumber').val().replace(/\s/g,'').replace(/-/g,''),
+                ticketNumber: $('#ticketNumber').val()
             }
         }).done(function(data) {
             // The JSON sent back from the server will contain a success message
