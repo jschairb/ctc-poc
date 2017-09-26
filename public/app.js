@@ -69,6 +69,7 @@ $(function() {
             dataType: 'json',
             data: {
                 phoneNumber: $('#phoneNumber').val().replace(/\s/g,'').replace(/-/g,''),
+                requestReason: $('#requestReason').val(),
                 ticketNumber: $('#ticketNumber').val()
             }
         }).done(function(data) {
