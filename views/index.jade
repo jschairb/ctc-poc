@@ -15,30 +15,65 @@ block content
 
     // C2C contact form
     .row
-      .col-md-12
+      .col-md-6
+        h3 Request A Call
+        p.help-block.
+          Please fill out this simple form and a support agent will
+          contact you right away.
+
         form(id='contactForm', role='form')
-          .form-group
-            h3 Request A Call
-            p.help-block.
-              Please fill out this simple form and a support agent will
-              contact you right away.
+          div.panel.panel-default
+            div.panel-heading
+              h3.panel-title Account Contact Data
 
-          label Your Number
-          .form-group
-            input.form-control(type='tel', id='phoneNumber',
-              placeholder='(210) 555-0100')
+            div.panel-body
+              label Account Number
+              .form-group
+                input.form-control(type='text', id='accountNumber',
+                  placeholder='384728-8272')
 
-          label Why Are You Requesting A Call?
-          .form-group
-            select.form-control(id='requestReason')
-              option
-              option Emergency
-              option General Technical
-              option Sales/Billing
+              label Account Name
+              .form-group
+                input.form-control(type='text', id='accountName',
+                  placeholder='Sprockets & Gear, Ltd.')
 
-          label Do You Have A Ticket #?
-          .form-group
-            input.form-control(type='text', id='ticketNumber',
-              placeholder='12345678901-0111')
+              label Contact Number
+              .form-group
+                input.form-control(type='text', id='contactNumber',
+                  placeholder='384728-8272')
 
-          button(type='submit', id='request-call-btn', class='btn btn-default') Request A Call
+              label Contact Name
+              .form-group
+                input.form-control(type='text', id='contactName',
+                  placeholder='Bob Dobbs')
+
+            div.panel-heading
+              h3.panel-title User Input Values
+            div.panel-body
+              label Your Number
+              .form-group
+                input.form-control(type='tel', id='phoneNumber',
+                 placeholder='(210) 555-0100')
+
+              label Why Are You Requesting A Call?
+              .form-group
+                select.form-control(id='requestReason')
+                  option
+                  option Emergency
+                  option General Technical
+                  option Sales/Billing
+
+              label Do You Have A Ticket #?
+              .form-group
+                input.form-control(type='text', id='ticketNumber',
+                  placeholder='12345678901-0111')
+
+              button(type='submit', id='request-call-btn', class='btn btn-default') Request A Call
+
+      .col-md-6
+        div.panel.panel-info
+          div.panel-heading
+            h3.panel-title How It Works
+          div.panel-body
+            p.
+              Submit a form and receive a phone call.

@@ -26,7 +26,15 @@ mongoose.connect(config.mongodbURI, function (err, res) {
 });
 
 var callSchema = new mongoose.Schema({
+    account: {
+        name: String,
+        number: String
+    },
     callbackURL: String,
+    contact: {
+        name: String,
+        number: String
+    },
     phoneNumbers: {
         agent: String,
         from: String,
@@ -113,7 +121,15 @@ module.exports = function(app) {
         var callbackURL = 'https://' + request.headers.host + '/callbacks/' + encodeURIComponent(uuid);
 
         var call = new Call({
+            account: {
+                name: request.body.accountName,
+                number: request.body.accountNumber
+            },
             callbackURL: callbackURL,
+            contact: {
+                name: request.body.contactName,
+                number: request.body.contactNumber
+            },
             phoneNumbers: {
                 agent: config.agentNumber,
                 from: config.twilioNumber,

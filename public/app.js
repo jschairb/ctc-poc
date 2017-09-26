@@ -14,7 +14,6 @@ $(function() {
         style: 'ctc'
     });
 
-
     $.notify.addStyle("ctc", {
         html: "<div>\n<span data-notify-text></span>\n</div>",
         classes: {
@@ -68,6 +67,10 @@ $(function() {
             method: 'POST',
             dataType: 'json',
             data: {
+                accountName: $('#accountName').val(),
+                accountNumber: $('#accountNumber').val(),
+                contactName: $('#contactName').val(),
+                contactNumber: $('#contactNumber').val(),
                 phoneNumber: $('#phoneNumber').val().replace(/\s/g,'').replace(/-/g,''),
                 requestReason: $('#requestReason').val(),
                 ticketNumber: $('#ticketNumber').val()
