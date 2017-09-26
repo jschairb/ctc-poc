@@ -59,12 +59,16 @@ $(function() {
         e.preventDefault();
 
         // Call our ajax endpoint on the server to initialize the phone call
+        // I'm removing all whitespace and stripping the dashes out to match
+        // how I handle other numbers in the system. I couldn't find this as
+        // an option of the jquery plugin. At the very least, this should be
+        // it's own formatting function.
         $.ajax({
             url: '/call',
             method: 'POST',
             dataType: 'json',
             data: {
-                phoneNumber: $('#phoneNumber').val()
+                phoneNumber: $('#phoneNumber').val().replace(/\s/g,'').replace(/-/g,'')
             }
         }).done(function(data) {
             // The JSON sent back from the server will contain a success message

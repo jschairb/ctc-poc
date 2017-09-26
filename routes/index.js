@@ -132,8 +132,8 @@ module.exports = function(app) {
         // from the /callbacks route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
-              // message has a variety of interesting values, but I'm going to just use the
-              // webhooks to handle all the CallEvent tracking.
+              // message has a variety of interesting values, but I'm going to
+              // just use the webhooks to handle all the CallEvent tracking.
               response.send({
                   message: `Thank you, someone will contact you soon from ${twilioCallOptions.from}.`
               });
