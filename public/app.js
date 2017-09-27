@@ -51,6 +51,12 @@ $(function() {
         }
     });
 
+    // Set example account and contact data
+    $('#accountName').val('Cymitar Network Systems');
+    $('#contactName').val('Bob Dobbs');
+    $('#accountNumber').val('acc999901');
+    $('#contactNumber').val('con999901');
+
     // Intercept form submission and submit the form with ajax
     $('#contactForm').on('submit', function(e) {
         // Prevent submit event from bubbling and automatically submitting the
