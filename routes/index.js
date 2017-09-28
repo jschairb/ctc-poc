@@ -200,5 +200,6 @@ module.exports = function(app) {
     app.post('/events/voice', function(request, response) {
         console.log("CALL STATUS CHANGE:");
         console.log(request.body);
+        response.status(200).send('OK');
     });
 };
