@@ -187,7 +187,7 @@ module.exports = function(app) {
                                   { voice: 'man' });
 
                 twimlResponse.dial(agentNumber);
-                twimlResponse.dial.statusCallbackEvent = ['initiated', 'ringing', 'answered', 'completed'];
+                twimlResponse.dial.statusCallbackEvent(['initiated', 'ringing', 'answered', 'completed']);
 
                 response.send(twimlResponse.toString());
             } else {
