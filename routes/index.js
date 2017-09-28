@@ -143,9 +143,10 @@ module.exports = function(app) {
         call.save(function (err) {if (err) console.log('Error on Call save!')});
 
         var twilioCallOptions = {
-            from: call.phoneNumbers.from,
+            url: call.callbackURL,
             to: call.phoneNumbers.to,
-            url: call.callbackURL
+            from: call.phoneNumbers.from,
+            statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
         };
 
         // Place an outbound call to the user, using the TwiML instructions
