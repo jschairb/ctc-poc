@@ -145,7 +145,9 @@ module.exports = function(app) {
         var twilioCallOptions = {
             url: call.callbackURL,
             to: call.phoneNumbers.to,
-            from: call.phoneNumbers.from
+            from: call.phoneNumbers.from,
+            statusCallback: `https://${request.headers.host}/events/voice`,
+            statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
         };
 
         // Place an outbound call to the user, using the TwiML instructions
@@ -187,7 +189,7 @@ module.exports = function(app) {
                                   { voice: 'man' });
 
                 twimlResponse.dial({
-                    'statusCallbackEvent': ['initiated', 'ringing', 'answered', 'completed']
+                    statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
                 }, agentNumber);
 
                 response.send(twimlResponse.toString());
