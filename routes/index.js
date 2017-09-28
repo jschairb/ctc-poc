@@ -186,8 +186,9 @@ module.exports = function(app) {
                                   'We will connect you with someone right now.',
                                   { voice: 'man' });
 
-                twimlResponse.dial(agentNumber);
-                twimlResponse.dial.statusCallbackEvent(['initiated', 'ringing', 'answered', 'completed']);
+                twimlResponse.dial({
+                    'statusCallbackEvent': ['initiated', 'ringing', 'answered', 'completed']
+                }, agentNumber);
 
                 response.send(twimlResponse.toString());
             } else {
