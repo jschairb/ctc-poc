@@ -15,6 +15,17 @@
 ## Resources
 
 * https://www.twilio.com/docs/api/voice/making-calls
+* https://elements.heroku.com/buttons/heroku-examples/node-websockets
+
+
+## Logging
+
+Logging in a deployed environment happens throught Papertrail. Install the `heroku-papertrail` CLI plugin to tail the files locally.
+
+* `heroku plugins:install heroku-papertrail`
+* `heroku pt -a ctc-poc -t`
+* `heroku addons:open --app ctc-poc papertrail
+* https://devcenter.heroku.com/articles/papertrail`
 
 
 This is an application example implementing Click to Call using Twilio.  For a
