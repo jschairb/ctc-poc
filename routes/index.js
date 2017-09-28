@@ -155,7 +155,7 @@ module.exports = function(app) {
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
               console.log("CALL REQUEST RESPONSE:");
-              console.log(JSON.stringify(message));
+              console.log(message);
 
               // message has a variety of interesting values, but I'm going to
               // just use the webhooks to handle all the CallEvent tracking.
