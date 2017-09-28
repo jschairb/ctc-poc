@@ -166,7 +166,6 @@ module.exports = function(app) {
     // Return TwiML instuctions for the outbound call
     app.post('/callbacks/:uuid', function(request, response) {
         var uuid = request.params.uuid;
-        console.log(request.body);
 
         Call.findOne({uuid: uuid}).exec(function(err, call) {
             if (!err) {
@@ -195,5 +194,11 @@ module.exports = function(app) {
                 response.status(500).send(err);
             };
         });
+    });
+
+    // Twilio Voice Call Status Change Webhook
+    app.post('/events/voice', function(request, response) {
+        console.log("CALL STATUS CHANGE:");
+        console.log(request.body);
     });
 };
