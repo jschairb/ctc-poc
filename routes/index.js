@@ -154,6 +154,9 @@ module.exports = function(app) {
         // from the /callbacks route
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
+              console.log("CALL REQUEST RESPONSE:");
+              console.log(message);
+
               // message has a variety of interesting values, but I'm going to
               // just use the webhooks to handle all the CallEvent tracking.
               response.send({
@@ -202,8 +205,7 @@ module.exports = function(app) {
 
     // Twilio Voice Call Status Change Webhook
     app.post('/events/voice', function(request, response) {
-        console.log("CALL STATUS CHANGE:");
-        console.log(request.body);
+        console.log("CALL STATUS CHANGE");
         response.status(200).send('OK');
     });
 };
