@@ -1,3 +1,30 @@
 body {
   padding-top: 70px;
 }
+
+#entries {
+  list-style-type: none;
+}
+
+#entries > .entry > .checkpoint {
+  font-weight: bolder;
+  text-align: left;
+  padding-top: 1em;
+  font-size: larger;
+}
+
+#entries > .entry > .time {
+  display: inline-block;
+  width: 20%;
+  text-align: right;
+  padding-right: 1em;
+}
+
+#entries .info, #entries .error {
+  display: inline-block;
+  width: 80%;
+}
+
+#entries.error {
+  color: red;
+}

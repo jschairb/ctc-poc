@@ -5,39 +5,55 @@ script(type="text/javascript", src="//media.twiliocdn.com/sdk/js/client/v1.4/twi
 block content
   .container
     h1 Agent Panel
-    p
-      This page provides the following to agents:
-    ul
-        li alert on incoming call when available
-        li set availability status
-        li accept a call
-        li terminate a call
 
     hr
 
     // C2C contact form
     .row
         .col-md-6
-            h2 Control
-            hr
-            .input-group
-                input.form-control(type='text', id='agentName', placeholder='Agent Name')
-                span.input-group-btn
-                    button#login-button.btn.btn-default(type='button') Login
-            &nbsp;
-            button#accept.btn.btn-lg.btn-block.btn-success(disabled, type='button') Accept
-            button#hold.btn.btn-lg.btn-block.btn-warning(disabled, type='button') Hold
+
+            #controls
+
+                #login
+                    h3 Login
+
+                    p Enter your agent name and press "Login" button
+
+                    .input-group
+                        input.form-control(type='text', id='agentName', placeholder='Agent Name' autocomplete='off')
+                        span.input-group-btn
+                            button#login-button.btn.btn-default(type='button') Login
+
+                    
+                #connecting
+                    h3 Connecting
+                    p … to Twilio
+
+                #available
+                    h3 Available 
+                    p 
+                        |Logged in as 
+                        span#agent &nbsp;
+
+                #alerting
+                    h3
+                        |Incoming call from 
+                        span#calling &nbsp;
+                    button#accept-button.btn.btn-lg.btn-block.btn-success Accept
+
+                #established
+                    h3 
+                        |Established call from
+                        span#calling &nbsp;
+                    button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
+
+                #error
+                    h3 Error
+                    pre#message &nbsp;
+                    p Softphone is in an error state, page reload required.
 
         .col-md-6
-            h2 Status
-            hr
-            .alert.alert-info
-                strong Agent: 
-                span#agent-name &empty;
-            .alert.alert-warning
-                strong Alerting Call: 
-                span#alert &empty;
-            .alert.alert-success
-                strong Active Call: 
-                span#active &empty;
 
+            #log
+                h2 Status Log
+                #entries

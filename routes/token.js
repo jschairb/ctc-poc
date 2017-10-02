@@ -3,13 +3,10 @@ const
     config = require('../config');
 
 const generate = (identity) => {
-    console.log(identity);
     const capability = new twilio.jwt.ClientCapability({
         accountSid: config.accountSid,
         authToken: config.authToken,
     });
-
-    console.log('config', config);
 
     capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope(identity));
     capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
