@@ -157,6 +157,9 @@ module.exports = function(app) {
               console.log("CALL REQUEST RESPONSE:");
               console.log(message);
 
+              console.log("SID:");
+              console.log(message.sid);
+
               // message has a variety of interesting values, but I'm going to
               // just use the webhooks to handle all the CallEvent tracking.
               response.send({
@@ -174,11 +177,6 @@ module.exports = function(app) {
 
         Call.findOne({uuid: uuid}).exec(function(err, call) {
             if (!err) {
-                /*
-                   1. Create a new CallEvent for UUID
-                   2. Personalize greeting
-                */
-
                 var callEvent = new CallEvent(request.body);
                 callEvent.CallUUID = uuid;
 
@@ -187,7 +185,7 @@ module.exports = function(app) {
                 var agentNumber = call.phoneNumbers.agent;
                 var twimlResponse = new VoiceResponse();
 
-                twimlResponse.say('Thank you for using our Click-To-Call feature' +
+                twimlResponse.say('Thank you for using our Click-To-Call feature. ' +
                                   'We will connect you with someone right now.',
                                   { voice: 'man' });
 
@@ -203,7 +201,6 @@ module.exports = function(app) {
 
     // Twilio Voice Call Status Change Webhook
     app.post('/events/voice', function(request, response) {
-        console.log("CALL STATUS CHANGE");
         response.status(200).send('OK');
     });
 };
