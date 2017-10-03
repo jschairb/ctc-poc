@@ -1,59 +1,65 @@
-extends ./layout.jade
+extends ./agent-layout.jade
 
 script(type="text/javascript", src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js")
 
 block content
-  .container
-    h1 Agent Experience
+    .container
+        h1 Agent Experience
 
-    hr
+        p Login with the following agent names for different functionality.
 
-    // C2C contact form
-    .row
-        .col-md-6
+        ul
+            li directdial &mdash; to accept calls from the direct number.
+            li agent &mdash; to accept calls from the ACD.
+        hr
 
-            #controls
+        // C2C contact form
+        .row
+            .col-md-6
 
-                #login
-                    h2 Login
+                #controls
 
-                    p Enter your agent name and press "Login" button
+                    #login
+                        h2 Login
 
-                    .input-group
-                        input.form-control(type='text', id='agentName', placeholder='Agent Name' autocomplete='off')
-                        span.input-group-btn
-                            button#login-button.btn.btn-default(type='button') Login
+                        p Enter your agent name and press "Login" button
 
+                        .input-group
+                            input.form-control(type='text', id='agentName', placeholder='Agent Name' autocomplete='off')
+                            span.input-group-btn
+                                button#login-button.btn.btn-default(type='button') Login
+
+                        
+                    #connecting
+                        h2 Connecting
+                        p … to Twilio
+
+                    #available
+                        h2 Available 
+                        p 
+                            |Logged in as 
+                            span#agent &nbsp;
+
+                    #alerting
+                        h2
+                            |Incoming call from 
+                            span#calling &nbsp;
+                        button#accept-button.btn.btn-lg.btn-block.btn-success Accept
+
+                    #established
+                        h2 
+                            |Established call from 
+                            span#calling &nbsp;
+                        button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
+
+                    #error
+                        h2 Error
+                        #message &nbsp;
+                        p Softphone is in an error state, page reload required.
+
+            .col-md-6
+
+                #log
+                    h2 Status Log
+                    #entries
                     
-                #connecting
-                    h2 Connecting
-                    p … to Twilio
-
-                #available
-                    h2 Available 
-                    p 
-                        |Logged in as 
-                        span#agent &nbsp;
-
-                #alerting
-                    h2
-                        |Incoming call from 
-                        span#calling &nbsp;
-                    button#accept-button.btn.btn-lg.btn-block.btn-success Accept
-
-                #established
-                    h2 
-                        |Established call from 
-                        span#calling &nbsp;
-                    button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
-
-                #error
-                    h2 Error
-                    #message &nbsp;
-                    p Softphone is in an error state, page reload required.
-
-        .col-md-6
-
-            #log
-                h2 Status Log
-                #entries
