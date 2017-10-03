@@ -2,29 +2,48 @@ body {
   padding-top: 70px;
 }
 
+#controls, #log {
+  border: thin #eee solid;
+  padding: 1em;
+  border-radius: 3px;
+}
+
 #entries {
-  list-style-type: none;
+  padding: 1em;
+  border-radius: 3px;
 }
 
 #entries > .entry > .checkpoint {
   font-weight: bolder;
-  text-align: left;
-  padding-top: 1em;
+  padding-left: 20%;
+  margin-top: 1em;
   font-size: larger;
+  font-family: monospace;  
+  border-top: 2px black solid;
 }
 
 #entries > .entry > .time {
   display: inline-block;
   width: 20%;
   text-align: right;
+  vertical-align: top;
   padding-right: 1em;
+  font-family: monospace;
 }
 
 #entries .info, #entries .error {
   display: inline-block;
   width: 80%;
+  font-family: monospace;
 }
 
-#entries.error {
-  color: red;
+#entries .error {
+  color: #d9534f;  
+}
+
+#controls #error #message {
+  font-family: monospace;
+  font-weight: bold;
+  color: #d9534f;
+  font-size: larger;
 }

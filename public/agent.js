@@ -113,7 +113,7 @@ class Controls {
     error(message) {
         $('#controls > *').hide();
         $('#controls > #error').show();
-        $('#controls > #error #message').text(calling);
+        $('#controls > #error #message').text(message);
     }
 
 }
@@ -134,7 +134,7 @@ $(() => {
                 Twilio.Device.setup(data.token, {
                     debug: true, region: 'us1'
                 });
-                
+
                 Twilio.Device.ready(function (device) {
                     log.info('Twilio.Device Ready');
                     controls.available(data.identity);

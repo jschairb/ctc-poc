@@ -4,7 +4,7 @@ script(type="text/javascript", src="//media.twiliocdn.com/sdk/js/client/v1.4/twi
 
 block content
   .container
-    h1 Agent Panel
+    h1 Agent Experience
 
     hr
 
@@ -15,7 +15,7 @@ block content
             #controls
 
                 #login
-                    h3 Login
+                    h2 Login
 
                     p Enter your agent name and press "Login" button
 
@@ -26,30 +26,30 @@ block content
 
                     
                 #connecting
-                    h3 Connecting
+                    h2 Connecting
                     p … to Twilio
 
                 #available
-                    h3 Available 
+                    h2 Available 
                     p 
                         |Logged in as 
                         span#agent &nbsp;
 
                 #alerting
-                    h3
+                    h2
                         |Incoming call from 
                         span#calling &nbsp;
                     button#accept-button.btn.btn-lg.btn-block.btn-success Accept
 
                 #established
-                    h3 
-                        |Established call from
+                    h2 
+                        |Established call from 
                         span#calling &nbsp;
                     button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
 
                 #error
-                    h3 Error
-                    pre#message &nbsp;
+                    h2 Error
+                    #message &nbsp;
                     p Softphone is in an error state, page reload required.
 
         .col-md-6
