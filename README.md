@@ -8,6 +8,8 @@
 
 ## Instructions
 
+see `package.json` for current version of node/npm.
+
 * Copy `.example.env` to `.env` and change values
 * `npm install`
 * `node app.js`
