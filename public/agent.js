@@ -151,9 +151,14 @@ $(() => {
                 });
 
                 Twilio.Device.disconnect(function (conn) {
-                    log.info('Call ended.');
+                    log.info('call ended');
                     controls.available(agentName);
                 });
+
+                Twilio.Device.cancel(function (conn) {
+                    log.info('caller hung up');
+                    controls.available(agentName);                
+                 });
 
                 Twilio.Device.incoming(function (conn) {
                     if (conn != Twilio.Device.activeConnection()) {
@@ -161,6 +166,7 @@ $(() => {
                         conn.reject();
                         return;
                     }
+
                     log.makeCheckpoint();
                     log.info(`incoming call from ${conn.parameters.From}`);
                     controls.alerting(conn.parameters.From, () => { conn.accept(); })
