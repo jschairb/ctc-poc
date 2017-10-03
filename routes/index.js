@@ -5,7 +5,7 @@ var bodyParser = require('body-parser');
 var twilio = require('twilio');
 var VoiceResponse = twilio.twiml.VoiceResponse;
 var config = require('../config');
-var token = require('./token');
+var token = require('../token');
 
 // Copied from docs, unsure why const vs require
 const uuidv1 = require('uuid/v1');

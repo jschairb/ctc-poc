@@ -1,6 +1,6 @@
 const
     twilio = require('twilio'),
-    config = require('../config');
+    config = require('./config');
 
 const generate = (identity) => {
     const capability = new twilio.jwt.ClientCapability({
