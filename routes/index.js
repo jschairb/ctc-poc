@@ -134,7 +134,7 @@ module.exports = function(app) {
             phoneNumbers: {
                 agent: config.agentNumber,
                 from: config.twilioNumber,
-                to: request.body.phoneNumber
+                to: request.body.phoneNumber // really the customer
             },
             requestReason: request.body.requestReason,
             ticketNumber: request.body.ticketNumber,
@@ -145,14 +145,19 @@ module.exports = function(app) {
 
         var twilioCallOptions = {
             url: call.callbackURL,
-            to: call.phoneNumbers.to,
-            from: call.phoneNumbers.from,
+            to: call.phoneNumbers.agent,
+            from: call.phoneNumbers.to,
             statusCallback: `https://${request.headers.host}/events/voice`,
             statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
         };
 
         // Place an outbound call to the user, using the TwiML instructions
         // from the /callbacks route
+        console.log("REQ", request.body);
+        console.log("CALL", call);
+        console.log("TCO", twilioCallOptions);
+        console.log(`CALLING AGENT: ${twilioCallOptions.to}`);
+
         twilio_client.calls.create(twilioCallOptions)
           .then((message) => {
               console.log("CALL REQUEST RESPONSE:");
@@ -182,16 +187,15 @@ module.exports = function(app) {
                 callEvent.CallUUID = uuid;
 
                 callEvent.save(function (err) {if (err) console.log('error on CallEvent save!')});
-
-                var agentNumber = call.phoneNumbers.agent;
+                console.log("CALL", call);
+                var customerNumber = call.phoneNumbers.to;
                 var twimlResponse = new VoiceResponse();
 
-                twimlResponse.say('Thank you for using our Click-To-Call feature. ' +
-                                  'We will connect you with someone right now.',
-                                  { voice: 'man' }); // TODO check privilege
+                twimlResponse.say(`Click-To-Call requested; dialing customer`, { voice: 'man' });
+                let ddd = twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
 
-                twimlResponse.dial(agentNumber);
-
+                console.log(`CALLING CUSTOMER: ${customerNumber}`);
+                console.log('TWIML', twimlResponse.toString());
                 response.send(twimlResponse.toString());
             } else {
                 console.log(err);
