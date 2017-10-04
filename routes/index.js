@@ -192,7 +192,7 @@ module.exports = function(app) {
                 var twimlResponse = new VoiceResponse();
 
                 twimlResponse.say(`Click-To-Call requested; dialing customer`, { voice: 'man' });
-                let ddd = twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
+                twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
 
                 console.log(`CALLING CUSTOMER: ${customerNumber}`);
                 console.log('TWIML', twimlResponse.toString());
@@ -213,8 +213,13 @@ module.exports = function(app) {
         response.render('agent');
     });
 
-    app.get('/token', (request, response) => {
-        let tok = token.generate(request.query.agentName)
+    app.get('/client-token', (request, response) => {
+        let tok = token.getClientToken(request.query.agentName)
         response.send(tok);
     });
+    app.get('/worker-token', (request, response) => {
+        let tok = token.getWorkerToken(request.query.agentName)
+        response.send(tok);
+    });
+
 };
