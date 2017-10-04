@@ -21,5 +21,10 @@ module.exports = {
     mongodbURI: process.env.MONGODB_URI,
 
     // The port your web application will run on
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+
+    // workspace stuffs
+    workspaceSid: process.env.WORKSPACE_SID,
+    workerSid: process.env.WORKER_SID,
+    channelId: process.env.CHANNEL_ID,
 };
