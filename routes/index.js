@@ -90,6 +90,10 @@ var callEventSchema = new mongoose.Schema({
 });
 var CallEvent = mongoose.model('CallEvent', callEventSchema);
 
+// Using {strict: false} makes the model schemaless.
+var eventSchema = new mongoose.Schema({}, {strict: false});
+var Event = mongoose.model('Event', eventSchema);
+
 // Configure application routes
 module.exports = function(app) {
     // Set Jade as the default template engine
@@ -208,7 +212,7 @@ module.exports = function(app) {
     app.post('/events/voice', function(request, response) {
         response.status(200).send('OK');
     });
-    
+
     app.get('/agent', (request, response) => {
         response.render('agent');
     });
@@ -217,6 +221,7 @@ module.exports = function(app) {
         let tok = token.getClientToken(request.query.agentName)
         response.send(tok);
     });
+
     app.get('/worker-token', (request, response) => {
         let tok = token.getWorkerToken(
             request.query.agentName,
@@ -224,8 +229,24 @@ module.exports = function(app) {
             config.authToken,
             config.workspaceSid,
             config.workerSid
-        )
+        );
         response.send(tok);
     });
 
+    // For a full list of what will be posted, please refer to the following
+    // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
+    app.post('/events/workspaces', (request, response) => {
+        var attributes = request.body;
+        console.log(attributes);
+
+        var event = new Event(attributes);
+        event.save(function (err) {
+            if (!err) {
+                response.status(200).send('OK');
+            } else {
+                console.log(err);
+                response.status(500).send(err);
+            };
+        });
+    });
 };
