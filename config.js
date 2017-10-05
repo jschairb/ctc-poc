@@ -15,7 +15,7 @@ module.exports = {
     agentNumber: process.env.AGENT_NUMBER,
 
     // An application SID is the way that a Twilio application is identified.
-    twimlAppSid: process.env.TWIML_APP_SID,
+    applicationSid: process.env.TWIML_APP_SID,
 
     // MongoDB connection string
     mongodbURI: process.env.MONGODB_URI,
