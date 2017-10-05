@@ -3,25 +3,30 @@ extends ./agent-layout.jade
 script(type="text/javascript", src="//media.twiliocdn.com/sdk/js/client/v1.4/twilio.min.js")
 
 block content
+
     .container
         h1 Agent Experience
 
         p Login with the following agent names for different functionality.
 
-        ul
-            li directdial &mdash; to accept calls from the direct number.
-            li agent &mdash; to accept calls from the ACD.
+        dl.dl-horizontal
+            dt directdial
+            dd accepts calls from the direct number.
+
+            dt agent 
+            dd accepts calls from the ACD.
+
         hr
 
         // C2C contact form
         .row
             .col-md-6
-                #worker-controls
+                #worker-controls.box
                     h2 Work Router
 
                     .disjunct
 
-                        #error
+                        #error.error-message
                             h3 Error
                             #message &nbsp;
                             p Worker is in an error state, page reload required.
@@ -35,20 +40,22 @@ block content
                         #ready
                             h3 Ready for work
 
-                            h4
-                                |name: 
-                                span#name &nbsp;
+                            dl.dl-horizontal
+                                dt name
+                                dd#name &nbsp;
 
-                            h4
-                                |activity: 
-                                span#activity &nbsp;
+                                dt activity
+                                dd#activity &nbsp;
 
-                            h4
-                                |available: 
-                                span#available &nbsp;
+                                dt available
+                                dd#available &nbsp;
+                            
+                            select#activity-select.form-control
+                                option a
+                                option b
                 br
 
-                #controls
+                #controls.box
                     h1 Soft Phone
 
                     #login
@@ -86,12 +93,12 @@ block content
 
                     #error
                         h2 Error
-                        #message &nbsp;
+                        #message.error-message &nbsp;
                         p Softphone is in an error state, page reload required.
 
             .col-md-6
 
-                #log
+                #log.box
                     h2 Status Log
                     #entries
                     

@@ -2,8 +2,8 @@ body {
   padding-top: 70px;
 }
 
-#worker-controls, #controls, #log {
-  border: thin #eee solid;
+.box {
+  border: thin #ccc solid;
   padding: 1em;
   border-radius: 3px;
 }
@@ -41,8 +41,7 @@ body {
   color: #d9534f;  
 }
 
-#worker-controls #error #message,
-#controls #error #message {
+.error-message {
   font-family: monospace;
   font-weight: bold;
   color: #d9534f;

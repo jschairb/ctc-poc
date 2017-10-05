@@ -63,6 +63,15 @@ class WorkerControls {
 
     constructor() {
         this.disjunct = $('#worker-controls > .disjunct');
+
+        this.availabilitySelect = $('#ready #activity-select', this.disjunct);
+        this.availabilitySelect.on('change', () => {
+            let activitySid;
+            $('option:selected', this.availabilitySelect).each(function () {
+                activitySid = this.value;
+            });
+            this.updateActivity(activitySid);
+        });
     }
 
     error(message) {
@@ -81,12 +90,24 @@ class WorkerControls {
         $('#connecting', this.disjunct).show();
     }
 
-    ready(name, activity, available) {
+    ready(name, activity, available, activities, updateActivity) {
         $('> *', this.disjunct).hide();
         $('#ready', this.disjunct).show();
         $('#ready #name', this.disjunct).text(name);
         $('#ready #activity', this.disjunct).text(activity);
         $('#ready #available', this.disjunct).text(available);
+
+        let select = $('#ready #activity-select', this.disjunct)
+        $('> option', select).remove();
+
+        activities.forEach((a) => {
+            let opt = $(`<option label='${a.friendlyName} - ${a.available ? 'available' : 'unavailable'}'>${a.sid}</option>`);
+            if (a.friendlyName == activity) {
+                opt.prop('selected', true);
+            }
+            select.append(opt);
+        });
+        this.updateActivity = updateActivity;
     }
 
  }
@@ -279,10 +300,47 @@ $(() => {
                         log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`)    // `Twilio.TaskRouter.Worker 1`'
                         log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`)    // 'Reserved'
                         log.info(`Twilio.TaskRouter.Worker available: ${worker.available}`)       // false
-                        workerControls.ready(worker.friendlyName, worker.activityName, worker.available);
+
+
+                        worker.workspace.activities.fetch((error, activityList) => { 
+                            if (error) {
+                                log.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                                workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                                return;
+                            }
+
+                            let updateActivity = (activitySid) => { 
+                                worker.update({ ActivitySid: activitySid }, (error, worker) => {
+                                    if (error) {
+                                        log.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                                        workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                                        return;
+                                    }
+
+                                    log.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
+
+                                    workerControls.ready(
+                                        worker.friendlyName,
+                                        worker.activityName,
+                                        worker.available,
+                                        activityList.data,
+                                        updateActivity
+                                    );
+
+                                });
+                            }
+
+                            workerControls.ready(
+                                worker.friendlyName,
+                                worker.activityName,
+                                worker.available,
+                                activityList.data,
+                                updateActivity
+                            );
+
+                        });
                     },
                     (error) => {
-                        console.log(error);
                         log.error('Twilio.TaskRouter.Worker error: ' + error);
                         workerControls.error('Twilio.TaskRouter.Worker error: ' + error);
                     });
