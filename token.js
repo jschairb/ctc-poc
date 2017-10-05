@@ -10,7 +10,7 @@ const generate = (identity) => {
 
     capability.addScope(new twilio.jwt.ClientCapability.IncomingClientScope(identity));
     capability.addScope(new twilio.jwt.ClientCapability.OutgoingClientScope({
-        applicationSid: config.twimlAppSid,
+        applicationSid: config.applicationSid,
         clientName: identity,
     }));
 
