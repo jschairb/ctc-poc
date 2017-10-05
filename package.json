@@ -15,7 +15,7 @@
     ],
     "author": "Josh Schairbaum",
     "license": "MIT",
-    "engines" : { "node" : ">=4.1.0 <5.5.0" },
+    "engines" : { "node" : "6.11.2", "npm": "4.6.1" },
     "dependencies": {
         "body-parser": "^1.15.2",
         "express": "^4.14.0",

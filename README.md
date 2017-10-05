@@ -8,6 +8,8 @@
 
 ## Instructions
 
+see `package.json` for current version of node/npm.
+
 * Copy `.example.env` to `.env` and change values
 * `npm install`
 * `node app.js`
@@ -125,3 +127,26 @@ node app.js
 * No warranty expressed or implied.  Software is as is. Diggity.
 * [MIT License](http://www.opensource.org/licenses/mit-license.html)
 * Lovingly crafted by Twilio Developer Education.
+
+
+## Softphone
+
+Given some phone number connected to some TwiML Bin like:
+
+```{.xml}
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="woman" language="fr">Chapeau!</Say>
+	<Dial timeout="10">
+      <Client>directdial</Client>
+	</Dial>
+   <Say voice="woman" language="fr">Chapeau! 2</Say>
+</Response>
+```
+
+Calling the number will dial an agent named `directdial`.
+
+main files:
+- `routes/token.js`: acquire twilio client token for softphone
+- `public/agent.js`: client side agent experience functionality
+- `views/agent.jade`: client side agent experience view

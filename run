@@ -1,0 +1,18 @@
+#! /bin/sh
+
+# start mongodb
+echo "starting mongodb"
+MONGO_DB_PATH=./mongodb/data
+MONGO_DB_LOG=./mongodb/log
+mkdir -p $MONGO_DB_PATH
+mongod --dbpath $MONGO_DB_PATH --logpath $MONGO_DB_LOG &
+pids="$pids $!"
+
+# nodejs app
+echo "starting app"
+source .env
+node app.js &
+pids="$pids $!"
+
+trap "kill $pids" SIGINT SIGTERM
+wait $pids
