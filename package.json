@@ -2,6 +2,10 @@
     "name": "ctc-poc",
     "version": "0.0.1",
     "description": "An example of implementing click to call functionality in a Node.js application",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jschairb/ctc-poc.git"
+    },
     "main": "app.js",
     "scripts": {
         "test": "node test | faucet",
