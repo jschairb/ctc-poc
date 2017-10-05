@@ -6,7 +6,9 @@
 
 # Click-To-Call
 
-## Instructions
+This repository demonstrates some of the possible capabilities of Twilio while building a Click-To-Call feature.
+
+## Getting Started
 
 see `package.json` for current version of node/npm.
 
@@ -18,70 +20,18 @@ see `package.json` for current version of node/npm.
 
 * https://www.twilio.com/docs/api/voice/making-calls
 * https://elements.heroku.com/buttons/heroku-examples/node-websockets
+* https://www.twilio.com/docs/tutorials/automated-survey-node-express#what-we-will-learn
+* https://www.twilio.com/docs/tutorials/dynamic-call-center-node-express
+* https://www.twilio.com/studio#request-access
+* https://networktest.twilio.com/
+* http://www.mathguide.de/info/tools/languagecode.html
 
 
 ## Logging
 
-Logging in a deployed environment happens throught Papertrail. Install the `heroku-papertrail` CLI plugin to tail the files locally.
+Use `console.log(message)` throughout the application
 
-* `heroku plugins:install heroku-papertrail`
-* `heroku pt -a ctc-poc -t`
-* `heroku addons:open --app ctc-poc papertrail
-* https://devcenter.heroku.com/articles/papertrail`
-
-
-This is an application example implementing Click to Call using Twilio.  For a
-step-by-step tutorial, [visit this link](https://twilio.com/docs/howto/click-to-call).
-
-[Read the full tutorial here](https://www.twilio.com/docs/tutorials/walkthrough/click-to-call/node/express)!
-
-[![Build Status](https://travis-ci.org/TwilioDevEd/clicktocall-node.svg?branch=master)](https://travis-ci.org/TwilioDevEd/clicktocall-node)
-
-
-## Installation
-
-Step-by-step on how to deploy, configure and develop on this example app.
-
-
-### Fastest Deploy
-
-Use Heroku to deploy this app immediately.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/TwilioDevEd/clicktocall-node)
-
-
-### Getting Started
-
-1. Clone repository and `cd` into it.
-
-```bash
-git clone git://github.com/TwilioDevEd/clicktocall-node.git
-```
-
-1. Navigate to folder and create new Heroku Cedar app.
-
-```bash
-heroku create
-```
-
-1. Deploy to Heroku.
-
-```bash
-git push heroku master
-```
-
-1. Scale your dynos.
-
-```bash
-heroku scale web=1
-```
-
-1. Visit the home page of your new Heroku app to see your newly configured app!
-
-```bash
-heroku open
-```
-
+`heroku logs -a ctc-poc -t`
 
 ### Configuration
 
@@ -97,7 +47,6 @@ export TWILIO_NUMBER=+15556667777
 ```
 
 Are you using Windows or Linux? You can learn more about how to set variables [here](https://www.java.com/en/download/help/path.xml).
-
 
 ### Development
 
@@ -121,14 +70,6 @@ node app.js
 
 1. Tweak away on `routes/index.js`.
 
-
-## Meta
-
-* No warranty expressed or implied.  Software is as is. Diggity.
-* [MIT License](http://www.opensource.org/licenses/mit-license.html)
-* Lovingly crafted by Twilio Developer Education.
-
-
 ## Softphone
 
 Given some phone number connected to some TwiML Bin like:
@@ -150,3 +91,17 @@ main files:
 - `routes/token.js`: acquire twilio client token for softphone
 - `public/agent.js`: client side agent experience functionality
 - `views/agent.jade`: client side agent experience view
+
+## Meta
+
+This application is a modification of an application example implementing
+Click To Call using Twilio created by Twilio Developer Education. No warranty
+expressed or implied.  Software is as is.
+
+This software is licensed under the [MIT License](http://www.opensource.org/licenses/mit-license.html).
+
+For further information on the original source, please see the following resources:
+
+* [Github - Original Application Source](https://github.com/TwilioDevEd/clicktocall-node)
+* [Twilio - Howto Click To Call](https://twilio.com/docs/howto/click-to-call)
+* [Twilio - Tutorial Click To Call](https://www.twilio.com/docs/tutorials/walkthrough/click-to-call/node/express)
