@@ -218,7 +218,13 @@ module.exports = function(app) {
         response.send(tok);
     });
     app.get('/worker-token', (request, response) => {
-        let tok = token.getWorkerToken(request.query.agentName)
+        let tok = token.getWorkerToken(
+            request.query.agentName,
+            config.accountSid,
+            config.authToken,
+            config.workspaceSid,
+            config.workerSid
+        )
         response.send(tok);
     });
 

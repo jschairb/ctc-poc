@@ -59,6 +59,38 @@ class Log {
 
 }
 
+class WorkerControls {
+
+    constructor() {
+        this.disjunct = $('#worker-controls > .disjunct');
+    }
+
+    error(message) {
+        $('> *', this.disjunct).hide();
+        $('#error', this.disjunct).show();
+        $('#error #message', this.disjunct).text(message);
+    }
+
+    disconnected() {
+        $('> *', this.disjunct).hide();
+        $('#disconnected', this.disjunct).show();
+    }
+
+    connecting() {
+        $('> *', this.disjunct).hide();
+        $('#connecting', this.disjunct).show();
+    }
+
+    ready(name, activity, available) {
+        $('> *', this.disjunct).hide();
+        $('#ready', this.disjunct).show();
+        $('#ready #name', this.disjunct).text(name);
+        $('#ready #activity', this.disjunct).text(activity);
+        $('#ready #available', this.disjunct).text(available);
+    }
+
+ }
+
 class Controls {
 
     constructor() {
@@ -118,90 +150,154 @@ class Controls {
 
 }
 
+async function getClientToken(agentName) {
+    return new Promise((resolve, reject) => {
+        $.getJSON('/client-token', { agentName: agentName })
+            .done((resp) => {
+                resolve(resp.token);
+            })
+            .fail((err) => {
+                reject(error);
+            })
+    });
+}
+
+async function getWorkerToken(agentName) {
+    return new Promise((resolve, reject) => {
+        $.getJSON('/worker-token', { agentName: agentName })
+            .done((resp) => {
+                resolve(resp.token);
+            })
+            .fail((err) => {
+                reject(error);
+            })
+    });
+}
+
+async function getTokens(agentName) {
+    let clientToken = await getClientToken(agentName);
+    let workerToken = await getWorkerToken(agentName);
+    return {
+        client: clientToken,
+        worker: workerToken,
+    }
+}
+
+function setupTwilioWorker(token) {
+    return new Promise((resolve, reject) => {
+        console.log(token);
+        const worker = new Twilio.TaskRouter.Worker(token);
+
+        worker.on("connected", function() {
+            console.log("Websocket has connected");
+        });
+
+        worker.on("disconnected", function() {
+            console.log("Websocket has disconnected");
+        });
+
+        worker.on("ready", function (worker) {
+            resolve(worker);
+        });
+
+        worker.on('error', (err) => {
+            reject(err.message);
+        });
+    });
+}
+
+function setupTwilioClient(token, controls, log) {
+    return new Promise((resolve, reject) => {
+        Twilio.Device.setup(token, {
+            debug: true, region: 'us1' // TODO move these to config
+        });
+
+        Twilio.Device.ready(function (device) {
+            resolve();
+        });
+
+        Twilio.Device.error(function (err) {
+            reject(err);
+        });
+
+        Twilio.Device.connect(function (conn) {
+            log.info(`established call from ${conn.parameters.From}`);
+            controls.established(conn.parameters.From, () => { conn.disconnect() });
+        });
+
+        Twilio.Device.disconnect(function (conn) {
+            log.info('call ended');
+            controls.available(agentName);
+        });
+
+        Twilio.Device.cancel(function (conn) {
+            log.info('caller hung up');
+            controls.available(agentName);
+        });
+
+        Twilio.Device.incoming(function (conn) {
+            if (conn != Twilio.Device.activeConnection()) {
+                log.info(`incoming call from ${conn.parameters.From}; ignoring`);
+                conn.reject();
+                return;
+            }
+
+            log.makeCheckpoint();
+            log.info(`incoming call from ${conn.parameters.From}`);
+            controls.alerting(conn.parameters.From, () => { conn.accept(); })
+        });
+    });    
+}
+
 $(() => {
 
     let log = new Log(),
+        workerControls = new WorkerControls(),    
         controls = new Controls();
 
     log.makeCheckpoint();
     log.info('page loaded');
+
+    workerControls.disconnected();
     controls.login((agentName) => {
         controls.connecting();
-
-        $.getJSON('/client-token', { agentName: agentName }).done((clientTokenResp) => {
-            let clientToken = clientTokenResp.token;
-
-            // twilio client
-            log.info(`Twilio.Device Token: ${agentName} acquired`);
-
-            $.getJSON('/worker-token', { agentName: agentName }).done((workerTokenResp) => {
-                let workerToken = workerTokenResp.token;
+        workerControls.connecting();
+        getTokens(agentName)
+            .then((tokens) => {
 
                 // twilio client
-                log.info(`Twilio.TaskRouter Token: ${agentName} acquired`);
+                log.info(`Twilio.Device token(${agentName}) acquired`);
+
+                // twilio client
+                log.info(`Twilio.TaskRouter token(${agentName}) acquired`);
 
                 // twilio worker
-                const worker = new Twilio.TaskRouter.Worker(workerToken);
-                worker.on("ready", function (worker) {
-                    log.info(`worker registered`)
-                    log.info(`worker sid: ${worker.sid}`)             // `WKxxx'`
-                    log.info(`worker name: ${worker.friendlyName}`)    // `Worker 1`'
-                    log.info(`worker activity: ${worker.activityName}`)    // 'Reserved'
-                    log.info(`worker available: ${worker.available}`)       // false
-                });
-                
-                worker.on('error', (err) => { 
-                    console.log('EEE', err)
-                });
+                setupTwilioWorker(tokens.worker).then(
+                    (worker) => {
+                        log.info(`Twilio.TaskRouter.Worker registered`)
+                        log.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`)             // `WKxxx'`
+                        log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`)    // `Twilio.TaskRouter.Worker 1`'
+                        log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`)    // 'Reserved'
+                        log.info(`Twilio.TaskRouter.Worker available: ${worker.available}`)       // false
+                        workerControls.ready(worker.friendlyName, worker.activityName, worker.available);
+                    },
+                    (error) => {
+                        console.log(error);
+                        log.error('Twilio.TaskRouter.Worker error: ' + error);
+                        workerControls.error('Twilio.TaskRouter.Worker error: ' + error);
+                    });
 
-                Twilio.Device.setup(clientToken, {
-                    debug: true, region: 'us1' // TODO move these to config
-                });
-
-                Twilio.Device.ready(function (device) {
-                    log.info('Twilio.Device Ready');
-                    controls.available(agentName);
-                });
-
-                Twilio.Device.error(function (err) {
-                    log.error('Twilio.Device Error: ' + err.message);
-                    controls.error(err.message);
-                });
-
-                Twilio.Device.connect(function (conn) {
-                    log.info(`established call from ${conn.parameters.From}`);
-                    controls.established(conn.parameters.From, () => { conn.disconnect() });
-                });
-
-                Twilio.Device.disconnect(function (conn) {
-                    log.info('call ended');
-                    controls.available(agentName);
-                });
-
-                Twilio.Device.cancel(function (conn) {
-                    log.info('caller hung up');
-                    controls.available(agentName);
-                });
-
-                Twilio.Device.incoming(function (conn) {
-                    if (conn != Twilio.Device.activeConnection()) {
-                        log.info(`incoming call from ${conn.parameters.From}; ignoring`);
-                        conn.reject();
-                        return;
-                    }
-
-                    log.makeCheckpoint();
-                    log.info(`incoming call from ${conn.parameters.From}`);
-                    controls.alerting(conn.parameters.From, () => { conn.accept(); })
-                });
-            }).fail((error) => {
-                log.error(`error getting twilio worker token: ${JSON.stringify(error)}`);
-                controls.error(JSON.stringify(error));
-            })
-        })
-            .fail(function (error) {
-                log.error(`error getting twilio client token: ${JSON.stringify(error)}`);
-                controls.error(JSON.stringify(error));
+                setupTwilioClient(tokens.client, controls, log).then(
+                    () => {
+                        log.info('Twilio.Device Ready');
+                        controls.available(agentName);
+                     },
+                    (error) => { 
+                        log.error('Twilio.Device Error: ' + err.message);
+                        controls.error(err.message);
+                    });
+            }, (error) => {
+                log.error('error getting twilio tokens: ' + error);
             });
     });
 

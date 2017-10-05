@@ -16,8 +16,40 @@ block content
         // C2C contact form
         .row
             .col-md-6
+                #worker-controls
+                    h2 Work Router
+
+                    .disjunct
+
+                        #error
+                            h3 Error
+                            #message &nbsp;
+                            p Worker is in an error state, page reload required.
+
+                        #disconnected
+                            h3 Disconnected 
+
+                        #connecting
+                            h3 Connecting
+
+                        #ready
+                            h3 Ready for work
+
+                            h4
+                                |name: 
+                                span#name &nbsp;
+
+                            h4
+                                |activity: 
+                                span#activity &nbsp;
+
+                            h4
+                                |available: 
+                                span#available &nbsp;
+                br
 
                 #controls
+                    h1 Soft Phone
 
                     #login
                         h2 Login

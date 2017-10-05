@@ -36,28 +36,31 @@ function buildWorkspacePolicy(options) {
     });
 }
 
-const getWorkerToken = (identity) => {
+const getWorkerToken = (identity, accountSid, authToken, workspaceSid, workerSid) => {
     // TODO authenticate identity (with something)
     // TODO authorize
+
     const capability = new twilio.jwt.taskrouter.TaskRouterCapability({
-        accountSid: config.accountSid,
-        authToken: config.authToken,
-        workspaceSid: config.workspaceSid,
-        channelId: config.channelId,
+        accountSid: accountSid,
+        authToken: authToken,
+        workspaceSid: workspaceSid,
+        channelId: workerSid,
     });
 
     // Event Bridge Policies
-    var eventBridgePolicies = twilio.jwt.taskrouter.util.defaultEventBridgePolicies(config.accountSid, config.workerSid);
+    var eventBridgePolicies = twilio.jwt.taskrouter.util.defaultEventBridgePolicies(accountSid, workerSid);
+
 
     var workspacePolicies = [
-        // Workspace fetch Policy
+
+        // Workspace Policy
         buildWorkspacePolicy(),
-
-        // Workspace Activities Update Policy
-        buildWorkspacePolicy({ resources: ['Activities'], method: 'POST' }),
-
-        // Workspace Activities Worker Reserations Policy
-        buildWorkspacePolicy({ resources: ['Workers', config.workerSid, 'Reservations', '**'], method: 'POST' }),
+        // Workspace subresources fetch Policy
+        buildWorkspacePolicy({ resources: ['**'] }),
+        // Workspace resources update Policy
+        buildWorkspacePolicy({ resources: ['**'], method: 'POST' }),
+        // Workspace resources delete Policy
+        buildWorkspacePolicy({ resources: ['**'], method: 'DELETE' })
     ];
 
     eventBridgePolicies.concat(workspacePolicies).forEach(function (policy) {

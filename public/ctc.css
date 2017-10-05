@@ -2,7 +2,7 @@ body {
   padding-top: 70px;
 }
 
-#controls, #log {
+#worker-controls, #controls, #log {
   border: thin #eee solid;
   padding: 1em;
   border-radius: 3px;
@@ -41,6 +41,7 @@ body {
   color: #d9534f;  
 }
 
+#worker-controls #error #message,
 #controls #error #message {
   font-family: monospace;
   font-weight: bold;
