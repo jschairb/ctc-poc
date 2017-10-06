@@ -94,6 +94,10 @@ var CallEvent = mongoose.model('CallEvent', callEventSchema);
 var workspaceEventSchema = new mongoose.Schema({}, {strict: false});
 var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
 
+// Using {strict: false} makes the model schemaless.
+var workflowEventSchema = new mongoose.Schema({}, {strict: false});
+var WorkflowEvent = mongoose.model('WorksflowEvent', workflowEventSchema);
+
 // Configure application routes
 module.exports = function(app) {
     // Set Jade as the default template engine
@@ -231,6 +235,25 @@ module.exports = function(app) {
             config.workerSid
         );
         response.send(tok);
+    });
+
+    // For a full list of what will be posted, please refer to the following
+    // url:
+    // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
+    // This must respond within 5 seconds or it will move the Fallback URL.
+    app.post('/events/workflows', (request, response) => {
+        var attributes = request.body;
+        console.log(attributes);
+
+        var workflowEvent = new WorkflowEvent(attributes);
+        workflowEvent.save(function (err) {
+            if (!err) {
+                response.status(200).send('OK');
+            } else {
+                console.log(err);
+                response.status(500).send(err);
+            };
+        });
     });
 
     // For a full list of what will be posted, please refer to the following
