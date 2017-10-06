@@ -91,8 +91,8 @@ var callEventSchema = new mongoose.Schema({
 var CallEvent = mongoose.model('CallEvent', callEventSchema);
 
 // Using {strict: false} makes the model schemaless.
-var eventSchema = new mongoose.Schema({}, {strict: false});
-var Event = mongoose.model('Event', eventSchema);
+var workspaceEventSchema = new mongoose.Schema({}, {strict: false});
+var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
 
 // Configure application routes
 module.exports = function(app) {
@@ -239,8 +239,8 @@ module.exports = function(app) {
         var attributes = request.body;
         console.log(attributes);
 
-        var event = new Event(attributes);
-        event.save(function (err) {
+        var workspaceEvent = new WorkspaceEvent(attributes);
+        workspaceEvent.save(function (err) {
             if (!err) {
                 response.status(200).send('OK');
             } else {
