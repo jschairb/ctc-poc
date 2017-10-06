@@ -271,7 +271,8 @@ function setupTwilioWorker(token, workerControls, log) {
             log.info("Selected language: " + reservation.task.attributes.selected_language);
             log.info("-----");
 
-            reservation.accept();
+            // reservation.accept();
+            reservation.dequeue();
         });
 
         worker.on("reservation.accepted", function (reservation) {
