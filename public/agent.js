@@ -110,7 +110,7 @@ class WorkerControls {
         this.updateActivity = updateActivity;
     }
 
- }
+}
 
 class Controls {
 
@@ -204,26 +204,92 @@ async function getTokens(agentName) {
     }
 }
 
-function setupTwilioWorker(token) {
+function setupTwilioWorker(token, workerControls, log) {
     return new Promise((resolve, reject) => {
         console.log(token);
         const worker = new Twilio.TaskRouter.Worker(token);
 
-        worker.on("connected", function() {
-            console.log("Websocket has connected");
+        worker.on("connected", function () {
+            console.log("Twilio.TaskRouter.Worker Websocket has connected");
         });
 
-        worker.on("disconnected", function() {
-            console.log("Websocket has disconnected");
+        worker.on("disconnected", function () {
+            console.log("Twilio.TaskRouter.Worker Websocket has disconnected");
         });
 
         worker.on("ready", function (worker) {
+            log.info(`Twilio.TaskRouter.Worker registered`)
+            log.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`)             // `WKxxx'`
+            log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`)    // `Twilio.TaskRouter.Worker 1`'
+            log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`)    // 'Reserved'
+            log.info(`Twilio.TaskRouter.Worker available: ${worker.available}`)       // false
+
+            worker.workspace.activities.fetch((error, activityList) => {
+                if (error) {
+                    log.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                    workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                    return;
+                }
+
+                let updateActivity = (activitySid) => {
+                    worker.update({ ActivitySid: activitySid }, (error, worker) => {
+                        if (error) {
+                            log.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                            workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
+                            return;
+                        }
+
+                        log.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
+                    });
+                }
+
+                workerControls.ready(
+                    worker.friendlyName,
+                    worker.activityName,
+                    worker.available,
+                    activityList.data,
+                    updateActivity
+                )
+            });
+
             resolve(worker);
         });
 
         worker.on('error', (err) => {
+            workerControls.error('Twilio.TaskRouter.Worker error: ' + error);
             reject(err.message);
         });
+
+        worker.on('activity.update', function (worker) {
+            log.info("Worker activity changed to: " + worker.activityName);
+        });
+
+        worker.on("reservation.created", function (reservation) {
+            log.info("-----");
+            log.info("You have been reserved to handle a call!");
+            log.info("Call from: " + reservation.task.attributes.from);
+            log.info("Selected language: " + reservation.task.attributes.selected_language);
+            log.info("-----");
+
+            reservation.accept();
+        });
+
+        worker.on("reservation.accepted", function (reservation) {
+            log.info("Reservation " + reservation.sid + " accepted!");
+        });
+
+        worker.on("reservation.rejected", function (reservation) {
+            log.info("Reservation " + reservation.sid + " rejected!");
+        });
+
+        worker.on("reservation.timeout", function (reservation) {
+            log.info("Reservation " + reservation.sid + " timed out!");
+        });
+
+        worker.on("reservation.canceled", function (reservation) {
+            log.info("Reservation " + reservation.sid + " canceled!");
+        });
+
     });
 }
 
@@ -267,13 +333,13 @@ function setupTwilioClient(token, controls, log) {
             log.info(`incoming call from ${conn.parameters.From}`);
             controls.alerting(conn.parameters.From, () => { conn.accept(); })
         });
-    });    
+    });
 }
 
 $(() => {
 
     let log = new Log(),
-        workerControls = new WorkerControls(),    
+        workerControls = new WorkerControls(),
         controls = new Controls();
 
     log.makeCheckpoint();
@@ -293,64 +359,20 @@ $(() => {
                 log.info(`Twilio.TaskRouter token(${agentName}) acquired`);
 
                 // twilio worker
-                setupTwilioWorker(tokens.worker).then(
+                setupTwilioWorker(tokens.worker, workerControls, log).then(
                     (worker) => {
-                        log.info(`Twilio.TaskRouter.Worker registered`)
-                        log.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`)             // `WKxxx'`
-                        log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`)    // `Twilio.TaskRouter.Worker 1`'
-                        log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`)    // 'Reserved'
-                        log.info(`Twilio.TaskRouter.Worker available: ${worker.available}`)       // false
-
-
-                        worker.workspace.activities.fetch((error, activityList) => { 
-                            if (error) {
-                                log.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                                workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                                return;
-                            }
-
-                            let updateActivity = (activitySid) => { 
-                                worker.update({ ActivitySid: activitySid }, (error, worker) => {
-                                    if (error) {
-                                        log.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                                        workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                                        return;
-                                    }
-
-                                    log.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
-
-                                    workerControls.ready(
-                                        worker.friendlyName,
-                                        worker.activityName,
-                                        worker.available,
-                                        activityList.data,
-                                        updateActivity
-                                    );
-
-                                });
-                            }
-
-                            workerControls.ready(
-                                worker.friendlyName,
-                                worker.activityName,
-                                worker.available,
-                                activityList.data,
-                                updateActivity
-                            );
-
-                        });
+                        log.info('Twilio.TaskRouter.Worker Ready');
                     },
                     (error) => {
                         log.error('Twilio.TaskRouter.Worker error: ' + error);
-                        workerControls.error('Twilio.TaskRouter.Worker error: ' + error);
                     });
 
                 setupTwilioClient(tokens.client, controls, log).then(
                     () => {
                         log.info('Twilio.Device Ready');
                         controls.available(agentName);
-                     },
-                    (error) => { 
+                    },
+                    (error) => {
                         log.error('Twilio.Device Error: ' + err.message);
                         controls.error(err.message);
                     });
