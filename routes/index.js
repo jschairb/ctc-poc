@@ -95,8 +95,8 @@ var workspaceEventSchema = new mongoose.Schema({}, {strict: false});
 var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
 
 // Using {strict: false} makes the model schemaless.
-var workflowEventSchema = new mongoose.Schema({}, {strict: false});
-var WorkflowEvent = mongoose.model('WorksflowEvent', workflowEventSchema);
+var assignmentCallbackSchema = new mongoose.Schema({}, {strict: false});
+var AssignmentCallback = mongoose.model('AssignementCallback', assignmentCallbackSchema);
 
 // Configure application routes
 module.exports = function(app) {
@@ -241,16 +241,18 @@ module.exports = function(app) {
     // url:
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
-    app.post('/events/workflows', (request, response) => {
+    app.post('/assignment_callbacks', (request, response) => {
         var attributes = request.body;
+        console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
+        console.log("END_ASSIGNMENT_CALLBACKS:");
 
-        var workflowEvent = new WorkflowEvent(attributes);
-        workflowEvent.save(function (err) {
+        var assignmentCallback = new AssignmentCallback(attributes);
+        assignmentCallback.save(function (err) {
             if (!err) {
                 response.status(200).send('OK');
             } else {
-                console.log(err);
+                console.error(err);
                 response.status(500).send(err);
             };
         });
@@ -260,14 +262,13 @@ module.exports = function(app) {
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', (request, response) => {
         var attributes = request.body;
-        console.log(attributes);
 
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
                 response.status(200).send('OK');
             } else {
-                console.log(err);
+                console.error(err);
                 response.status(500).send(err);
             };
         });
