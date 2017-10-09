@@ -250,12 +250,37 @@ module.exports = function(app) {
         var assignmentCallback = new AssignmentCallback(attributes);
         assignmentCallback.save(function (err) {
             if (!err) {
-                response.status(200).send('OK');
+                var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;
+
+                var callbackResponse = {
+                    accept: "true",
+                    from: config.twilioNumber,
+                    instruction: "call",
+                    timeout: 10,
+                    url: url
+                };
+
+                response.status(200).send(callbackResponse);
             } else {
                 console.error(err);
                 response.status(500).send(err);
             };
         });
+    });
+
+    app.post('/callbacks/ctc-agent-answers', (request, response) => {
+        var attributes = request.body;
+        var twimlResponse = new VoiceResponse();
+
+        console.log("BEGIN_CTC_AGENT_ANSWERS:");
+        console.log(attributes);
+        console.log("END_CTC_AGENT_ANSWERS:");
+
+        twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
+        // twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
+        twimlResponse.hangup();
+        console.log('TWIML', twimlResponse.toString());
+        response.send(twimlResponse.toString());
     });
 
     // For a full list of what will be posted, please refer to the following
@@ -266,6 +291,9 @@ module.exports = function(app) {
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
+                if (attributes["EventType"] == 'reservation.accepted') {
+
+                };
                 response.status(200).send('OK');
             } else {
                 console.error(err);
