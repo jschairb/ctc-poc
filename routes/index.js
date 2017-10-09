@@ -185,6 +185,22 @@ module.exports = function(app) {
           });
     });
 
+    // This must come before /callbacks/:uuid to be matched explictly.
+    app.post('/callbacks/ctc-agent-answers', (request, response) => {
+        var attributes = request.body;
+        var twimlResponse = new VoiceResponse();
+
+        console.log("BEGIN_CTC_AGENT_ANSWERS:");
+        console.log(attributes);
+        console.log("END_CTC_AGENT_ANSWERS:");
+
+        twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
+        // twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
+        twimlResponse.hangup();
+        console.log('TWIML', twimlResponse.toString());
+        response.send(twimlResponse.toString());
+    });
+
     // Return TwiML instuctions for the outbound call
     app.post('/callbacks/:uuid', function(request, response) {
         var uuid = request.params.uuid;
@@ -266,21 +282,6 @@ module.exports = function(app) {
                 response.status(500).send(err);
             };
         });
-    });
-
-    app.post('/callbacks/ctc-agent-answers', (request, response) => {
-        var attributes = request.body;
-        var twimlResponse = new VoiceResponse();
-
-        console.log("BEGIN_CTC_AGENT_ANSWERS:");
-        console.log(attributes);
-        console.log("END_CTC_AGENT_ANSWERS:");
-
-        twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-        // twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
-        twimlResponse.hangup();
-        console.log('TWIML', twimlResponse.toString());
-        response.send(twimlResponse.toString());
     });
 
     // For a full list of what will be posted, please refer to the following
