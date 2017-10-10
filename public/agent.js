@@ -272,7 +272,10 @@ function setupTwilioWorker(token, workerControls, log) {
             log.info("-----");
 
             // reservation.accept();
-            reservation.dequeue();
+            log.info('conferencing');
+            reservation.conference(null, null, null, null, null, {
+                'From': '+12104056986'
+            });
         });
 
         worker.on("reservation.accepted", function (reservation) {
