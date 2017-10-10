@@ -29,7 +29,7 @@ var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
 
 // Using {strict: false} makes the model schemaless.
 var assignmentCallbackSchema = new mongoose.Schema({}, {strict: false});
-var AssignmentCallback = mongoose.model('AssignementCallback', assignmentCallbackSchema);
+var AssignmentCallback = mongoose.model('AssignmentCallback', assignmentCallbackSchema);
 
 // Configure application routes
 module.exports = function(app) {
@@ -66,7 +66,8 @@ module.exports = function(app) {
             .tasks
             .create({
                 workflowSid: config.workflowSid,
-                attributes: taskAttributes
+                taskChannel: 'voice',
+                attributes: JSON.stringify(taskAttributes)
             }).then((message) => {
                 response.send({
                     message: `Thank you, we will contact you via ${config.twilioNumber}`
