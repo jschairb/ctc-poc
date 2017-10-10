@@ -124,6 +124,16 @@ module.exports = function(app) {
         console.log(attributes);
         console.log("END_ASSIGNMENT_CALLBACKS:");
         response.status(200);
+
+        var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;        
+        var callbackResponse = {
+            accept: false,
+            from: config.twilioNumber,
+            instruction: "call",
+            timeout: 10,
+            url: url
+        };
+        response.status(200).send(callbackResponse);
         return;
 
         /*
@@ -133,7 +143,7 @@ module.exports = function(app) {
                 var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;
 
                 var callbackResponse = {
-                    accept: "true",
+                    accept: false,
                     from: config.twilioNumber,
                     instruction: "call",
                     timeout: 10,
@@ -147,6 +157,7 @@ module.exports = function(app) {
             };
         });
         */
+        
     });
 
     // For a full list of what will be posted, please refer to the following
