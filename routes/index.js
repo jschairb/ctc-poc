@@ -84,8 +84,7 @@ module.exports = function(app) {
         console.log("END_CTC_AGENT_ANSWERS:");
 
         twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-        // twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
-        twimlResponse.hangup();
+        twimlResponse.dial('+13523286593', {callerId: config.twilioNumber});
         console.log('TWIML', twimlResponse.toString());
         response.send(twimlResponse.toString());
     });
