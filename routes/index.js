@@ -123,7 +123,10 @@ module.exports = function(app) {
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
         console.log("END_ASSIGNMENT_CALLBACKS:");
+        response.status(200);
+        return;
 
+        /*
         var assignmentCallback = new AssignmentCallback(attributes);
         assignmentCallback.save(function (err) {
             if (!err) {
@@ -143,6 +146,7 @@ module.exports = function(app) {
                 response.status(500).send(err);
             };
         });
+        */
     });
 
     // For a full list of what will be posted, please refer to the following
