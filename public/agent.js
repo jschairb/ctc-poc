@@ -285,6 +285,10 @@ function setupTwilioWorker(token, workerControls, log) {
             log.info("-----");
 
             reservation.accept();
+            log.info('conferencing');
+            reservation.conference(null, null, null, null, null, {
+                'From': '+12104056986'
+            });
         });
 
         worker.on("reservation.accepted", function (reservation) {
@@ -300,12 +304,6 @@ function setupTwilioWorker(token, workerControls, log) {
                 taskAttributes.requestReason,
                 taskAttributes.ticketNumber
             );
-
-            log.info('conferencing');
-            reservation.conference(null, null, null, null, null, {
-                'From': '+12104056986'
-            });
-
         });
 
         worker.on("reservation.rejected", function (reservation) {
@@ -323,7 +321,7 @@ function setupTwilioWorker(token, workerControls, log) {
     });
 }
 
-function setupTwilioClient(token, controls, log) {
+function setupTwilioClient(token, controls, log, completeTask) {
     return new Promise((resolve, reject) => {
         Twilio.Device.setup(token, {
             debug: true, region: 'us1' // TODO move these to config
@@ -339,12 +337,15 @@ function setupTwilioClient(token, controls, log) {
 
         Twilio.Device.connect(function (conn) {
             log.info(`established call from ${conn.parameters.From}`);
+            console.log("CONNECTED CONN", conn);
             controls.established(conn.parameters.From, () => { conn.disconnect() });
         });
 
         Twilio.Device.disconnect(function (conn) {
             log.info('call ended');
             controls.available(agentName);
+            console.log("DISCONNECTED CONN", conn);
+            completeTask();
         });
 
         Twilio.Device.cancel(function (conn) {
@@ -361,7 +362,7 @@ function setupTwilioClient(token, controls, log) {
 
             log.makeCheckpoint();
             log.info(`incoming call from ${conn.parameters.From}`);
-            controls.alerting(conn.parameters.From, () => { conn.accept(); })
+            conn.accept();
         });
     });
 }
@@ -392,20 +393,22 @@ $(() => {
                 setupTwilioWorker(tokens.worker, workerControls, log).then(
                     (worker) => {
                         log.info('Twilio.TaskRouter.Worker Ready');
+
+                        setupTwilioClient(tokens.client, controls, log).then(
+                            () => {
+                                log.info('Twilio.Device Ready');
+                                controls.available(agentName);
+                            },
+                            (error) => {
+                                log.error('Twilio.Device Error: ' + err.message);
+                                controls.error(err.message);
+                            });
                     },
                     (error) => {
                         log.error('Twilio.TaskRouter.Worker error: ' + error);
                     });
 
-                setupTwilioClient(tokens.client, controls, log).then(
-                    () => {
-                        log.info('Twilio.Device Ready');
-                        controls.available(agentName);
-                    },
-                    (error) => {
-                        log.error('Twilio.Device Error: ' + err.message);
-                        controls.error(err.message);
-                    });
+                
             }, (error) => {
                 log.error('error getting twilio tokens: ' + error);
             });
