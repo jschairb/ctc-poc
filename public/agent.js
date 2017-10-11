@@ -110,6 +110,19 @@ class WorkerControls {
         this.updateActivity = updateActivity;
     }
 
+    accepted(accountName, accountNumber, contactName, contactNumber, phoneNumber, requestReason, ticketNumber) {
+        console.log(accountName);
+        $('> *', this.disjunct).hide();
+        $('#accepted', this.disjunct).show();
+        $('#accepted #account-name', this.disjunct).text(accountName);
+        $('#accepted #account-number', this.disjunct).text(accountNumber);
+        $('#accepted #contact-name', this.disjunct).text(contactName);
+        $('#accepted #contact-number', this.disjunct).text(contactNumber);
+        $('#accepted #phone-number', this.disjunct).text(phoneNumber);
+        $('#accepted #request-reason', this.disjunct).text(requestReason);
+        $('#accepted #ticket-number', this.disjunct).text(ticketNumber);
+    }
+
 }
 
 class Controls {
@@ -271,18 +284,28 @@ function setupTwilioWorker(token, workerControls, log) {
             log.info("Selected language: " + reservation.task.attributes.selected_language);
             log.info("-----");
 
-            // reservation.accept();
-            // reservation.dequeue();
-            
-            log.info('conferencing');
-            reservation.conference(null, null, null, null, null, {
-                'From': '+12104056986'
-            });
+            reservation.accept();
         });
 
         worker.on("reservation.accepted", function (reservation) {
             log.info("Reservation " + reservation.sid + " accepted!");
-            console.log(reservation.task.attributes);
+            let taskAttributes = reservation.task.attributes;
+            
+            workerControls.accepted(
+                taskAttributes.accountName,
+                taskAttributes.accountNumber,
+                taskAttributes.contactName,
+                taskAttributes.contactNumber,
+                taskAttributes.phoneNumber,
+                taskAttributes.requestReason,
+                taskAttributes.ticketNumber
+            );
+
+            log.info('conferencing');
+            reservation.conference(null, null, null, null, null, {
+                'From': '+12104056986'
+            });
+
         });
 
         worker.on("reservation.rejected", function (reservation) {
