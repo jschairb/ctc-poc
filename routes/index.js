@@ -76,6 +76,9 @@ module.exports = function(app) {
 
     // This must come before /callbacks/:uuid to be matched explictly.
     app.post('/callbacks/ctc-agent-answers', (request, response) => {
+        console.log("AGENT ANSWERS REQUEST query:", request.query);
+        console.log("AGENT ANSWERS REQUEST body:", request.body);
+
         var attributes = request.body;
         var twimlResponse = new VoiceResponse();
 
@@ -119,8 +122,8 @@ module.exports = function(app) {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', (request, response) => {
-        console.log("REQUEST query:", request.query);
-        console.log("REQUEST body:", request.body);
+        console.log("ASSIGNMENT CALLBACK REQUEST query:", request.query);
+        console.log("ASSIGNMENT CALLBACK REQUEST body:", request.body);
 
         var attributes = request.body;
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
@@ -128,7 +131,7 @@ module.exports = function(app) {
         console.log("END_ASSIGNMENT_CALLBACKS:");
         response.status(200);
 
-        var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;        
+        var url = `https://${request.headers.host}/callbacks/ctc-agent-answers?TaskSid=${attributes.TaskSid}`;        
         var callbackResponse = {
             accept: false,
             from: config.twilioNumber,
