@@ -119,6 +119,9 @@ module.exports = function(app) {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', (request, response) => {
+        console.log("REQUEST query:", request.query);
+        console.log("REQUEST body:", request.body);
+
         var attributes = request.body;
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
@@ -134,30 +137,7 @@ module.exports = function(app) {
             url: url
         };
         response.status(200).send(callbackResponse);
-        return;
-
-        /*
-        var assignmentCallback = new AssignmentCallback(attributes);
-        assignmentCallback.save(function (err) {
-            if (!err) {
-                var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;
-
-                var callbackResponse = {
-                    accept: false,
-                    from: config.twilioNumber,
-                    instruction: "call",
-                    timeout: 10,
-                    url: url
-                };
-
-                response.status(200).send(callbackResponse);
-            } else {
-                console.error(err);
-                response.status(500).send(err);
-            };
-        });
-        */
-        
+        return; 
     });
 
     // For a full list of what will be posted, please refer to the following
