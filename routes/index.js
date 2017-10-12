@@ -11,6 +11,10 @@ var VoiceResponse = twilio.twiml.VoiceResponse;
 // Create a Twilio REST API client for authenticated requests to Twilio
 var twilio_client = twilio(config.accountSid, config.authToken);
 
+// Validate Twilio Requests in production using Express middleware
+// See: https://www.twilio.com/docs/api/security#validating-requests
+const shouldValidate = config.env == 'production';
+
 // Create a Mongoose object to connect with MongoDB
 var mongoose = require('mongoose');
 
@@ -46,12 +50,12 @@ module.exports = function (app) {
     app.use(morgan('combined'));
 
     // Home Page with Click to Call
-    app.get('/', function (request, response) {
+    app.get('/', (request, response) => {
         response.render('index');
     });
 
     // Handle an AJAX POST request to place an outbound call
-    app.post('/call', function (request, response) {
+    app.post('/call', (request, response) => {
 
         // The contract for the POSTed document can be found in /public/app.js#75
         // I've refrained from repeating it here, although, it could be
@@ -76,11 +80,17 @@ module.exports = function (app) {
     });
 
     // This must come before /callbacks/:uuid to be matched explictly.
-    app.post('/callbacks/ctc-agent-answers', (request, response) => {
+    app.post('/callbacks/ctc-agent-answers', twilio.webhook({validate: shouldValidate}), (request, response) => {
+        var attributes = request.body;
+        var twimlResponse = new VoiceResponse();
+
+        console.log("BEGIN_CTC_AGENT_ANSWERS:");
+        console.log(attributes);
+        console.log("END_CTC_AGENT_ANSWERS:");
 
         let workspaceSid = request.query.WorkspaceSid,
             taskSid = request.query.TaskSid;
-        
+
         twilio_client.taskrouter.v1
             .workspaces(workspaceSid)
             .tasks(taskSid)
@@ -101,7 +111,7 @@ module.exports = function (app) {
     });
 
     // Twilio Voice Call Status Change Webhook
-    app.post('/events/voice', function (request, response) {
+    app.post('/events/voice', (request, response) => {
         response.status(200).send('OK');
     });
 
@@ -129,7 +139,7 @@ module.exports = function (app) {
     // url:
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
-    app.post('/assignment_callbacks', (request, response) => {
+    app.post('/assignment_callbacks', twilio.webhook({validate: shouldValidate}), (request, response) => {
         var attributes = request.body;
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
@@ -150,7 +160,7 @@ module.exports = function (app) {
 
     // For a full list of what will be posted, please refer to the following
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
-    app.post('/events/workspaces', (request, response) => {
+    app.post('/events/workspaces', twilio.webhook({validate: shouldValidate}), (request, response) => {
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {

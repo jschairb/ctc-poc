@@ -7,6 +7,9 @@ module.exports = {
     // Twilio Auth Token - found on your dashboard
     authToken: process.env.TWILIO_AUTH_TOKEN,
 
+    // Simple accessor for Environment
+    env: process.env.NODE_ENV,
+
     // A Twilio number that you have purchased through the twilio.com web
     // interface or API
     twilioNumber: process.env.TWILIO_NUMBER,
