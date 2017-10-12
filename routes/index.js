@@ -1,11 +1,12 @@
-var path = require('path');
-var express = require('express');
-var morgan = require('morgan');
-var bodyParser = require('body-parser');
+var path = require('path'),
+    express = require('express'),
+    morgan = require('morgan'),
+    bodyParser = require('body-parser'),
+    config = require('../config'),
+    token = require('../models/token');
+
 var twilio = require('twilio');
 var VoiceResponse = twilio.twiml.VoiceResponse;
-var config = require('../config');
-var token = require('../token');
 
 // Create a Twilio REST API client for authenticated requests to Twilio
 var twilio_client = twilio(config.accountSid, config.authToken);
@@ -23,13 +24,8 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res
   }
 });
 
-// Using {strict: false} makes the model schemaless.
-var workspaceEventSchema = new mongoose.Schema({}, {strict: false});
-var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
-
-// Using {strict: false} makes the model schemaless.
-var assignmentCallbackSchema = new mongoose.Schema({}, {strict: false});
-var AssignmentCallback = mongoose.model('AssignmentCallback', assignmentCallbackSchema);
+require('../models/AssignmentCallback');
+require('../models/WorkspaceEvent');
 
 // Configure application routes
 module.exports = function(app) {

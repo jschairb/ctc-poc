@@ -1,6 +1,6 @@
 const
     twilio = require('twilio'),
-    config = require('./config');
+    config = require('../config');
 
 const getClientToken = (identity) => {
     // TODO authenticate identity (with something)
