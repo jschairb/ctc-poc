@@ -21,24 +21,53 @@ block content
         // C2C contact form
         .row
             .col-md-6
-                #worker-controls.box
-                    h2 Work Router
+                #softphone-view.box
+                    h2 Soft Phone
+
+                    hr
 
                     .disjunct
 
-                        #error.error-message
-                            h3 Error
-                            #message &nbsp;
-                            p Worker is in an error state, page reload required.
+                        #login
+                            p Enter your agent name and press "Login" button
+
+                            .input-group
+                                input.form-control(type='text', id='agentName', placeholder='Agent Name' autocomplete='off')
+                                span.input-group-btn
+                                    button#login-button.btn.btn-default(type='button') Login
+                            
+                        #connecting
+                            h3 connecting
+                            p … to Twilio
+
+                        #available
+                            h3 available 
+                            p 
+                                |Logged in as 
+                                span#agent &nbsp;
+
+                        #established
+                            h3 
+                                |dialing customer 
+                                span#calling &nbsp;
+                            button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
+                br
+
+                #worker-view.box
+                    h2 Task
+
+                    hr
+
+                    .disjunct
 
                         #disconnected
-                            h3 Disconnected 
+                            h3 disconnected 
 
                         #connecting
-                            h3 Connecting
+                            h3 connecting
 
                         #ready
-                            h3 Ready for work
+                            h3 no task
 
                             dl.dl-horizontal
                                 dt name
@@ -54,14 +83,8 @@ block content
                                 option a
                                 option b
 
-                        #available
-                            h3 available
-                        
-                        #unavailable
-                            h3 unavailable
-
                         #accepted.dl-horizontal
-                            h3 accepted
+                            h3 task accepted
 
                             dl
                                 dt account name
@@ -90,47 +113,17 @@ block content
                             dl
                                 dt ticket number
                                 dd#ticket-number
+                
+            .col-md-6
+                #error.box
+                    h2 Status
+                    hr
+                    #message.error-message OK
 
                 br
 
-                #controls.box
-                    h1 Soft Phone
-
-                    #login
-                        h2 Login
-
-                        p Enter your agent name and press "Login" button
-
-                        .input-group
-                            input.form-control(type='text', id='agentName', placeholder='Agent Name' autocomplete='off')
-                            span.input-group-btn
-                                button#login-button.btn.btn-default(type='button') Login
-
-                        
-                    #connecting
-                        h2 Connecting
-                        p … to Twilio
-
-                    #available
-                        h2 Available 
-                        p 
-                            |Logged in as 
-                            span#agent &nbsp;
-
-                    #established
-                        h2 
-                            |Responding to callback call from 
-                            span#calling &nbsp;
-                        button#clear-button.btn.btn-lg.btn-block.btn-danger Clear   
-
-                    #error
-                        h2 Error
-                        #message.error-message &nbsp;
-                        p Softphone is in an error state, page reload required.
-
-            .col-md-6
-
                 #log.box
-                    h2 Status Log
+                    h2 Log
+                    hr
                     #entries
                     

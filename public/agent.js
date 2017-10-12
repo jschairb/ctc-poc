@@ -32,20 +32,15 @@ let formatDuration = (ms) => {
     return str;
 }
 
-// load the soft phone
-class Log {
+class LogView {
 
     info(message) {
-        console.log(message);
-
         let elapsedTime = formatDuration(new Date() - this.checkpoint);
         let entry = `<div class='entry'><div class='time'>${elapsedTime}</div><div class='info'>${message}</div></div>`;
         $('#log > #entries').append(entry);
     }
 
     error(message) {
-        console.error(message);
-
         let elapsedTime = formatDuration(new Date() - this.checkpoint);
         let entry = `<div class='entry'><div class='time'>${elapsedTime}</div><div class='error'>${message}</div></div>`;
         $('#log > #entries').append(entry);
@@ -59,79 +54,101 @@ class Log {
 
 }
 
-class WorkerControls {
+class ErrorView {
 
     constructor() {
-        this.disjunct = $('#worker-controls > .disjunct');
+        this.element = $('#error');
+    }
 
-        this.availabilitySelect = $('#ready #activity-select', this.disjunct);
+    hide() {
+        this.element.hide();
+    }
+
+    show(message) {
+        this.element.show();
+        $('#message', this.element).text(message);
+    }
+
+}
+
+class DisjunctView {
+
+    constructor(element) {
+        this.element = element;
+    }
+
+    show(selector) {
+        $('> *', this.element).hide();
+        $(selector, this.element).show();
+    }
+
+}
+
+class WorkerView {
+
+    constructor() {
+        this.element = $('#worker-view');
+        this.disjunct = new DisjunctView($('> .disjunct', this.element));
+
+        this.availabilitySelect = $('#ready #activity-select', this.element);
         this.availabilitySelect.on('change', () => {
             let activitySid;
-            $('option:selected', this.availabilitySelect).each(function () {
+            $('option:selected', this.availabilitySelect).each(function() {
                 activitySid = this.value;
             });
             this.updateActivity(activitySid);
         });
     }
 
-    error(message) {
-        $('> *', this.disjunct).hide();
-        $('#error', this.disjunct).show();
-        $('#error #message', this.disjunct).text(message);
-    }
-
     disconnected() {
-        $('> *', this.disjunct).hide();
-        $('#disconnected', this.disjunct).show();
+        this.disjunct.show('#disconnected');
     }
 
     connecting() {
-        $('> *', this.disjunct).hide();
-        $('#connecting', this.disjunct).show();
+        this.disjunct.show('#connecting');
     }
 
-    ready(name, activity, available, activities, updateActivity) {
-        $('> *', this.disjunct).hide();
-        $('#ready', this.disjunct).show();
-        $('#ready #name', this.disjunct).text(name);
-        $('#ready #activity', this.disjunct).text(activity);
-        $('#ready #available', this.disjunct).text(available);
+    ready(updateActivity) {
+        this.disjunct.show('#ready');
+        $('#ready #name', this.element).text(this.worker.friendlyName);
+        $('#ready #activity', this.element).text(this.worker.activityName);
+        $('#ready #available', this.element).text(this.worker.available);
 
-        let select = $('#ready #activity-select', this.disjunct)
+        let select = $('#ready #activity-select', this.element)
         $('> option', select).remove();
 
-        activities.forEach((a) => {
+        this.activities.forEach((a) => {
             let opt = $(`<option label='${a.friendlyName} - ${a.available ? 'available' : 'unavailable'}'>${a.sid}</option>`);
-            if (a.friendlyName == activity) {
+            if (a.friendlyName == this.worker.activityName) {
                 opt.prop('selected', true);
             }
             select.append(opt);
         });
-        this.updateActivity = updateActivity;
     }
 
-    accepted(accountName, accountNumber, contactName, contactNumber, phoneNumber, requestReason, ticketNumber) {
-        console.log(accountName);
-        $('> *', this.disjunct).hide();
-        $('#accepted', this.disjunct).show();
-        $('#accepted #account-name', this.disjunct).text(accountName);
-        $('#accepted #account-number', this.disjunct).text(accountNumber);
-        $('#accepted #contact-name', this.disjunct).text(contactName);
-        $('#accepted #contact-number', this.disjunct).text(contactNumber);
-        $('#accepted #phone-number', this.disjunct).text(phoneNumber);
-        $('#accepted #request-reason', this.disjunct).text(requestReason);
-        $('#accepted #ticket-number', this.disjunct).text(ticketNumber);
+    working(accountName, accountNumber, contactName, contactNumber, phoneNumber, requestReason, ticketNumber) {
+        this.disjunct.show('#accepted');
+        $('#accepted #account-name', this.element).text(accountName);
+        $('#accepted #account-number', this.element).text(accountNumber);
+        $('#accepted #contact-name', this.element).text(contactName);
+        $('#accepted #contact-number', this.element).text(contactNumber);
+        $('#accepted #phone-number', this.element).text(phoneNumber);
+        $('#accepted #request-reason', this.element).text(requestReason);
+        $('#accepted #ticket-number', this.element).text(ticketNumber);
     }
 
 }
 
-class Controls {
+class SoftPhoneView {
 
     constructor() {
+        this.element = $('#softphone-view');
+        this.disjunct = new DisjunctView($('> .disjunct', this.element));
+
         $('#login-button').on('click', (ev) => {
             ev.preventDefault();
             let agentName = $('#agentName').val()
-            this.startSession(agentName);
+            this.submitAgentName(agentName);
         });
 
         $('#accept-button').on('click', (ev) => {
@@ -145,41 +162,32 @@ class Controls {
         });
     }
 
-    login(startSession) {
-        $('#controls > *').hide();
-        $('#controls > #login').show();
-        this.startSession = startSession;
+    login() {
+        this.disjunct.show('#login');
+        return new Promise((resolve, reject) => {
+            this.submitAgentName = resolve;
+        });
     }
 
     connecting() {
-        $('#controls > *').hide();
-        $('#controls > #connecting').show();
+        this.disjunct.show('#connecting');
     }
 
-    available(agent) {
-        $('#controls > *').hide();
-        $('#controls > #available').show();
-        $('#controls > #available #agent').text(agent);
+    available() {
+        this.disjunct.show('#available');
+        $('#available #agent', this.element).text(this.clientName);
     }
 
     alerting(calling, accept) {
-        $('#controls > *').hide();
-        $('#controls > #alerting').show();
-        $('#controls > #alerting #calling').text(calling);
+        this.disjunct.show('#alerting');
+        $('#alerting #calling', this.element).text(calling);
         this.accept = accept;
     }
 
     established(calling, clear) {
-        $('#controls > *').hide();
-        $('#controls > #established').show();
-        $('#controls > #established #calling').text(calling);
+        this.disjunct.show('#established');
+        $('> #established #calling', this.element).text(calling);
         this.clear = clear;
-    }
-
-    error(message) {
-        $('#controls > *').hide();
-        $('#controls > #error').show();
-        $('#controls > #error #message').text(message);
     }
 
 }
@@ -208,120 +216,71 @@ async function getWorkerToken(agentName) {
     });
 }
 
-async function getTokens(agentName) {
-    let clientToken = await getClientToken(agentName);
-    let workerToken = await getWorkerToken(agentName);
-    return {
-        client: clientToken,
-        worker: workerToken,
-    }
+async function getActivities(worker) {
+    return new Promise((resolve, reject) => {
+        worker.workspace.activities.fetch((error, activityList) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+            resolve(activityList.data);
+        });
+    });
 }
 
-function setupTwilioWorker(token, workerControls, log) {
+function setupTwilioWorker(token, state) {
     return new Promise((resolve, reject) => {
-        console.log(token);
         const worker = new Twilio.TaskRouter.Worker(token);
 
         worker.on("connected", function () {
-            console.log("Twilio.TaskRouter.Worker Websocket has connected");
+            state.info("Twilio.TaskRouter.Worker Websocket has connected");
         });
 
         worker.on("disconnected", function () {
-            console.log("Twilio.TaskRouter.Worker Websocket has disconnected");
+            state.info("Twilio.TaskRouter.Worker Websocket has disconnected");
         });
 
         worker.on("ready", function (worker) {
-            log.info(`Twilio.TaskRouter.Worker registered`)
-            log.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`)             // `WKxxx'`
-            log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`)    // `Twilio.TaskRouter.Worker 1`'
-            log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`)    // 'Reserved'
-            log.info(`Twilio.TaskRouter.Worker available: ${worker.available}`)       // false
-
-            worker.workspace.activities.fetch((error, activityList) => {
-                if (error) {
-                    log.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                    workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                    return;
-                }
-
-                let updateActivity = (activitySid) => {
-                    worker.update({ ActivitySid: activitySid }, (error, worker) => {
-                        if (error) {
-                            log.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                            workerControls.error('Twilio.TaskRouter.Worker error: ' + error.message);
-                            return;
-                        }
-
-                        log.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
-                    });
-                }
-
-                workerControls.ready(
-                    worker.friendlyName,
-                    worker.activityName,
-                    worker.available,
-                    activityList.data,
-                    updateActivity
-                )
-            });
-
+            state.info(`Twilio.TaskRouter.Worker registered`);
+            state.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`);
+            state.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`);
+            state.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`);
+            state.info(`Twilio.TaskRouter.Worker available: ${worker.available}`);
             resolve(worker);
         });
 
         worker.on('error', (err) => {
-            workerControls.error('Twilio.TaskRouter.Worker error: ' + error);
-            reject(err.message);
+            state.error('Twilio.TaskRouter.Worker error: ' + error);
         });
 
         worker.on('activity.update', function (worker) {
-            log.info("Worker activity changed to: " + worker.activityName);
+            state.changeActivity(worker);
         });
 
         worker.on("reservation.created", function (reservation) {
-            log.info("-----");
-            log.info("You have been reserved to handle a call!");
-            log.info("Call from: " + reservation.task.attributes.from);
-            log.info("Selected language: " + reservation.task.attributes.selected_language);
-            log.info("-----");
-
-            reservation.accept();
-            log.info('conferencing');
-            reservation.conference(null, null, null, null, null, {
-                'From': '+12104056986'
-            });
+            state.reserved(reservation);
         });
 
-        worker.on("reservation.accepted", function (reservation) {
-            log.info("Reservation " + reservation.sid + " accepted!");
-            let taskAttributes = reservation.task.attributes;
-            
-            workerControls.accepted(
-                taskAttributes.accountName,
-                taskAttributes.accountNumber,
-                taskAttributes.contactName,
-                taskAttributes.contactNumber,
-                taskAttributes.phoneNumber,
-                taskAttributes.requestReason,
-                taskAttributes.ticketNumber
-            );
+        worker.on("reservation.accepted", (reservation) => {
+            state.working(reservation);
         });
 
         worker.on("reservation.rejected", function (reservation) {
-            log.info("Reservation " + reservation.sid + " rejected!");
+            state.info("Reservation " + reservation.sid + " rejected!");
         });
 
         worker.on("reservation.timeout", function (reservation) {
-            log.info("Reservation " + reservation.sid + " timed out!");
+            state.info("Reservation " + reservation.sid + " timed out!");
         });
 
         worker.on("reservation.canceled", function (reservation) {
-            log.info("Reservation " + reservation.sid + " canceled!");
+            state.info("Reservation " + reservation.sid + " canceled!");
         });
 
     });
 }
 
-function setupTwilioClient(token, controls, log, completeTask) {
+function setupTwilioSoftPhone(token, state) {
     return new Promise((resolve, reject) => {
         Twilio.Device.setup(token, {
             debug: true, region: 'us1' // TODO move these to config
@@ -336,82 +295,190 @@ function setupTwilioClient(token, controls, log, completeTask) {
         });
 
         Twilio.Device.connect(function (conn) {
-            log.info(`established call from ${conn.parameters.From}`);
-            console.log("CONNECTED CONN", conn);
-            controls.established(conn.parameters.From, () => { conn.disconnect() });
+            state.established(conn.parameters.From, () => { conn.disconnect() });
         });
 
         Twilio.Device.disconnect(function (conn) {
-            log.info('call ended');
-            controls.available(agentName);
-            console.log("DISCONNECTED CONN", conn);
-            completeTask();
+            state.cleared();
         });
 
         Twilio.Device.cancel(function (conn) {
-            log.info('caller hung up');
-            controls.available(agentName);
+            state.callerHup();
         });
 
         Twilio.Device.incoming(function (conn) {
-            if (conn != Twilio.Device.activeConnection()) {
-                log.info(`incoming call from ${conn.parameters.From}; ignoring`);
-                conn.reject();
-                return;
-            }
-
-            log.makeCheckpoint();
-            log.info(`incoming call from ${conn.parameters.From}`);
-            conn.accept();
+            state.alerting(conn.parameters.From,
+                () => { conn.accept() },
+                () => { conn.reject() }
+            );
         });
     });
 }
 
-$(() => {
+class State {
 
-    let log = new Log(),
-        workerControls = new WorkerControls(),
-        controls = new Controls();
+    constructor(errorView, logView, workerView, softPhoneView) {
+        this.errorView = errorView;
+        this.logView = logView;
+        this.workerView = workerView;
+        this.softPhoneView = softPhoneView;
 
-    log.makeCheckpoint();
-    log.info('page loaded');
+        this.task = null;
+    }
 
-    workerControls.disconnected();
-    controls.login((agentName) => {
-        controls.connecting();
-        workerControls.connecting();
-        getTokens(agentName)
-            .then((tokens) => {
+    info(msg) {
+        this.logView.info(msg);
+        console.log(msg);
+    }
 
-                // twilio client
-                log.info(`Twilio.Device token(${agentName}) acquired`);
+    error(msg) {
+        this.logView.error(msg);
+        this.errorView.show(msg);
+        console.error(msg);
+    }
 
-                // twilio client
-                log.info(`Twilio.TaskRouter token(${agentName}) acquired`);
+    // work signals
+    reserved(reservation) {
+        this.info("-----");
+        this.info("You have been reserved to handle a call!");
+        this.info("Call from: " + reservation.task.attributes.from);
+        this.info("Selected language: " + reservation.task.attributes.selected_language);
+        this.info("-----");
 
-                // twilio worker
-                setupTwilioWorker(tokens.worker, workerControls, log).then(
-                    (worker) => {
-                        log.info('Twilio.TaskRouter.Worker Ready');
+        this.info('accepting reservation');
 
-                        setupTwilioClient(tokens.client, controls, log).then(
-                            () => {
-                                log.info('Twilio.Device Ready');
-                                controls.available(agentName);
-                            },
-                            (error) => {
-                                log.error('Twilio.Device Error: ' + err.message);
-                                controls.error(err.message);
-                            });
-                    },
-                    (error) => {
-                        log.error('Twilio.TaskRouter.Worker error: ' + error);
-                    });
-
-                
-            }, (error) => {
-                log.error('error getting twilio tokens: ' + error);
+        reservation.accept((error, reservation) => {
+            this.info('conferencing');
+            reservation.conference(null, null, null, null, null, {
+                'From': '+12104056986' // TODO get from config
             });
-    });
+        });
+    }
 
+    working(reservation) {
+        this.info("Reservation " + reservation.sid + " accepted!");
+        let attrs = reservation.task.attributes;
+        this.workerView.working(
+            attrs.accountName,
+            attrs.accountNumber,
+            attrs.contactName,
+            attrs.contactNumber,
+            attrs.phoneNumber,
+            attrs.requestReason,
+            attrs.ticketNumber
+        );
+
+        this.task = reservation.task;
+    }
+
+    // phone signals
+    established(from, disconnect) {
+        // coupled to working
+        this.info(`established call from ${from}`);
+        this.softPhoneView.established(from, disconnect);
+    }
+
+    cleared() {
+        this.info('call ended');
+        this.softPhoneView.available(agentName);
+
+        // should happen right before work.idle
+        this.task.complete((err, task) => {
+            if (err) {
+                state.error(err);
+                return;
+            }
+
+            this.info("task completed: " + task);
+            this.idle();
+        });
+    }
+
+    callerHup() {
+        this.info('caller hung up');
+        this.softPhoneView.available();
+    }
+
+    idle() {
+        this.task = null;
+        this.softPhoneView.available();
+        this.workerView.ready();
+    }
+
+    changeActivity(worker) {
+        this.info("Worker activity changed to: " + worker.activityName);
+        this.workerView.worker = worker;
+    }
+
+    alerting(from, accept, reject) {
+        // TODO make sure available?
+
+        if (this.task) {
+            log.info(`incoming call from ${from}; ignoring`);
+            reject();
+            return;
+        }
+
+        this.logView.makeCheckpoint();
+        this.info(`incoming call from ${from}`);
+        accept();
+    }
+
+}
+
+async function initialize() {
+    // components
+    let logView = new LogView(),
+        errorView = new ErrorView(),
+        workerView = new WorkerView(),
+        softPhoneView = new SoftPhoneView(),
+        state = new State(errorView, logView, workerView, softPhoneView);
+    
+    try {
+
+        // initial state
+        logView.makeCheckpoint();
+        logView.info('page loaded');
+        workerView.disconnected();
+
+        // respond to login
+        let agentName = await softPhoneView.login();
+        softPhoneView.clientName = agentName; // TODO setter?
+        softPhoneView.connecting();
+        workerView.connecting();
+
+        // setup softphone
+        let clientToken = await getClientToken(agentName);
+        logView.info(`twilio softphone token(${agentName}) acquired`);
+        let softPhone = await setupTwilioSoftPhone(clientToken, state);
+        logView.info(`twilio softphone setup`);
+        softPhoneView.available();
+
+        // setup worker
+        let workerToken = await getWorkerToken(agentName);
+        logView.info(`twilio worker token(${agentName}) acquired`);
+        let worker = await setupTwilioWorker(workerToken, state);
+        let activities = await getActivities(worker);
+        workerView.worker = worker;
+        workerView.activities = activities;
+        workerView.updateActivity = (activitySid) => {
+            worker.update({ ActivitySid: activitySid }, (error, worker) => {
+                if (error) {
+                    state.error(error);
+                    return;
+                }
+        
+                state.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
+            });
+        };
+        logView.info(`twilio worker setup`);
+        workerView.ready();
+
+    } catch (error) {
+        state.error(error.message);
+    }
+}
+
+$(() => {
+    initialize().then(() => { console.log('initialized') })
 });
