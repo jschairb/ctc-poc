@@ -85,7 +85,4 @@ block content
 
             h4 Orchestrate The Request
             p.
-              The values for the requested call are written to a datastore and a unique key is generated. The service makes an API request to Twilio requesting a call be placed between the customer service phone line and the customer and including a unique callback url for the requested call.
-
-            p.
-              Twilio initiates the phone call between the customer service phone line and the customer. After the customer answers, the callback URL is fired. The service accepts the callback and makes a TwiML Voice request that causes Twilio to read a customized greeting to the customer. The service finishes by making an API request for Twilio to have the customer servcie phone line connect to an agent's phone and bridging that call with the customer.
+              The values for the requested call are used to populate the data for a new Task in a Twilio Workflow. The Task will follow the assigned Worklow until it reaches a TaskQueue where a Reservation for an available Worker is created. The Worker will receive a notification of the Reservation in their browser, and they choose to accept. This acceptance fires a series of callbacks which initiate a Conference bridge, dial the Worker, and connect the Worker to the Conference. Once the the Worker is connected, another callback is fired and the Customer is dialed and is connected to the Conference bridge.
