@@ -81,8 +81,6 @@ module.exports = function (app) {
 
     // This must come before /callbacks/:uuid to be matched explictly.
     app.post('/callbacks/ctc-agent-answers', (request, response) => {
-        console.log("AGENT ANSWERS REQUEST query:", request.query);
-        console.log("AGENT ANSWERS REQUEST body:", request.body);
 
         let workspaceSid = request.query.WorkspaceSid,
             taskSid = request.query.TaskSid;
@@ -95,8 +93,6 @@ module.exports = function (app) {
                 var attributes = request.body;
                 let taskAttributes = JSON.parse(task.attributes);
 
-                console.log("task attrs", taskAttributes, typeof taskAttributes);
-                console.log('customer number: ', taskAttributes.phoneNumber);
                 var twimlResponse = new VoiceResponse();
                 console.log("BEGIN_CTC_AGENT_ANSWERS:");
                 console.log(attributes);
@@ -104,7 +100,6 @@ module.exports = function (app) {
 
                 twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
                 twimlResponse.dial(taskAttributes.phoneNumber, { callerId: config.twilioNumber });
-                console.log('TWIML', twimlResponse.toString());
                 response.send(twimlResponse.toString());
             }, (error) => {console.log("ERROR", error)});
     });
@@ -139,9 +134,6 @@ module.exports = function (app) {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', (request, response) => {
-        console.log("ASSIGNMENT CALLBACK REQUEST query:", request.query);
-        console.log("ASSIGNMENT CALLBACK REQUEST body:", request.body);
-
         var attributes = request.body;
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
@@ -164,8 +156,6 @@ module.exports = function (app) {
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', (request, response) => {
         var attributes = request.body;
-        console.log("EVENTS/WORKSPACES", request.query, attributes);
-
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
