@@ -105,3 +105,13 @@ For further information on the original source, please see the following resourc
 * [Github - Original Application Source](https://github.com/TwilioDevEd/clicktocall-node)
 * [Twilio - Howto Click To Call](https://twilio.com/docs/howto/click-to-call)
 * [Twilio - Tutorial Click To Call](https://www.twilio.com/docs/tutorials/walkthrough/click-to-call/node/express)
+
+# REACT
+following [Adding React to an Existing Application](https://reactjs.org/docs/installation.html#adding-react-to-an-existing-application)
+
+new tooling
+
+- react & react-dom – react itself
+- babel – copmiles all js for common compatibility
+- webpack – assembles all js & css into bundles
+- bootstrap – to look as good as the old stuff, but be bundled; [build config docs](http://getbootstrap.com/docs/4.0/getting-started/webpack/)
