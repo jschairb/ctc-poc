@@ -23,6 +23,10 @@ module.exports = {
     // The port your web application will run on
     port: process.env.PORT || 3000,
 
+    // Validate Twilio Requests in production using Express middleware
+    // See: https://www.twilio.com/docs/api/security#validating-requests
+    shouldValidate: process.env.SHOULD_VALIDATE == 'true' || false,
+
     // workspace stuffs
     workspaceSid: process.env.WORKSPACE_SID,
     workflowSid: process.env.WORKFLOW_SID,
