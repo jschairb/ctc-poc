@@ -17,18 +17,19 @@ var mongoose = require('mongoose');
 // Makes connection asynchronously.  Mongoose will queue up database
 // operations and release them when the connection is complete.
 mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res) {
-  if (err) {
-    console.log ('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
-  } else {
-    console.log ('Succeeded connected to: ' + config.mongodbURI);
-  }
+    if (err) {
+        console.log('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
+    } else {
+        console.log('Succeeded connected to: ' + config.mongodbURI);
+    }
 });
 
+// load the model schema
 require('../models/AssignmentCallback');
 require('../models/WorkspaceEvent');
 
 // Configure application routes
-module.exports = function(app) {
+module.exports = function (app) {
     // Set Jade as the default template engine
     app.set('view engine', 'jade');
 
@@ -45,12 +46,12 @@ module.exports = function(app) {
     app.use(morgan('combined'));
 
     // Home Page with Click to Call
-    app.get('/', function(request, response) {
+    app.get('/', function (request, response) {
         response.render('index');
     });
 
     // Handle an AJAX POST request to place an outbound call
-    app.post('/call', function(request, response) {
+    app.post('/call', function (request, response) {
 
         // The contract for the POSTed document can be found in /public/app.js#75
         // I've refrained from repeating it here, although, it could be
@@ -71,27 +72,36 @@ module.exports = function(app) {
             }).catch((error) => {
                 console.error(error);
                 response.status(500).send(error);
-           });
+            });
     });
 
     // This must come before /callbacks/:uuid to be matched explictly.
     app.post('/callbacks/ctc-agent-answers', (request, response) => {
-        var attributes = request.body;
-        var twimlResponse = new VoiceResponse();
 
-        console.log("BEGIN_CTC_AGENT_ANSWERS:");
-        console.log(attributes);
-        console.log("END_CTC_AGENT_ANSWERS:");
+        let workspaceSid = request.query.WorkspaceSid,
+            taskSid = request.query.TaskSid;
+        
+        twilio_client.taskrouter.v1
+            .workspaces(workspaceSid)
+            .tasks(taskSid)
+            .fetch()
+            .then((task) => {
+                var attributes = request.body;
+                let taskAttributes = JSON.parse(task.attributes);
 
-        twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-        // twimlResponse.dial(customerNumber, {callerId: config.twilioNumber});
-        twimlResponse.hangup();
-        console.log('TWIML', twimlResponse.toString());
-        response.send(twimlResponse.toString());
+                var twimlResponse = new VoiceResponse();
+                console.log("BEGIN_CTC_AGENT_ANSWERS:");
+                console.log(attributes);
+                console.log("END_CTC_AGENT_ANSWERS:");
+
+                twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
+                twimlResponse.dial(taskAttributes.phoneNumber, { callerId: config.twilioNumber });
+                response.send(twimlResponse.toString());
+            }, (error) => {console.log("ERROR", error)});
     });
 
     // Twilio Voice Call Status Change Webhook
-    app.post('/events/voice', function(request, response) {
+    app.post('/events/voice', function (request, response) {
         response.status(200).send('OK');
     });
 
@@ -124,33 +134,24 @@ module.exports = function(app) {
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
         console.log("END_ASSIGNMENT_CALLBACKS:");
+        response.status(200);
 
-        var assignmentCallback = new AssignmentCallback(attributes);
-        assignmentCallback.save(function (err) {
-            if (!err) {
-                var url = `https://${request.headers.host}/callbacks/ctc-agent-answers`;
-
-                var callbackResponse = {
-                    accept: "true",
-                    from: config.twilioNumber,
-                    instruction: "call",
-                    timeout: 10,
-                    url: url
-                };
-
-                response.status(200).send(callbackResponse);
-            } else {
-                console.error(err);
-                response.status(500).send(err);
-            };
-        });
+        var url = `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${attributes.WorkspaceSid}&TaskSid=${attributes.TaskSid}`;
+        var callbackResponse = {
+            accept: false,
+            from: config.twilioNumber,
+            instruction: "call",
+            timeout: 10,
+            url: url
+        };
+        response.status(200).send(callbackResponse);
+        return;
     });
 
     // For a full list of what will be posted, please refer to the following
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', (request, response) => {
         var attributes = request.body;
-
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
