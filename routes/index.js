@@ -11,10 +11,6 @@ var VoiceResponse = twilio.twiml.VoiceResponse;
 // Create a Twilio REST API client for authenticated requests to Twilio
 var twilio_client = twilio(config.accountSid, config.authToken);
 
-// Validate Twilio Requests in production using Express middleware
-// See: https://www.twilio.com/docs/api/security#validating-requests
-const shouldValidate = config.env == 'production';
-
 // Create a Mongoose object to connect with MongoDB
 var mongoose = require('mongoose');
 
@@ -80,7 +76,7 @@ module.exports = function (app) {
     });
 
     // This must come before /callbacks/:uuid to be matched explictly.
-    app.post('/callbacks/ctc-agent-answers', twilio.webhook({validate: shouldValidate}), (request, response) => {
+    app.post('/callbacks/ctc-agent-answers', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
         var attributes = request.body;
         var twimlResponse = new VoiceResponse();
 
@@ -139,7 +135,7 @@ module.exports = function (app) {
     // url:
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
-    app.post('/assignment_callbacks', twilio.webhook({validate: shouldValidate}), (request, response) => {
+    app.post('/assignment_callbacks', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
         var attributes = request.body;
         console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
         console.log(attributes);
@@ -160,7 +156,7 @@ module.exports = function (app) {
 
     // For a full list of what will be posted, please refer to the following
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
-    app.post('/events/workspaces', twilio.webhook({validate: shouldValidate}), (request, response) => {
+    app.post('/events/workspaces', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {

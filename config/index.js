@@ -7,9 +7,6 @@ module.exports = {
     // Twilio Auth Token - found on your dashboard
     authToken: process.env.TWILIO_AUTH_TOKEN,
 
-    // Simple accessor for Environment
-    env: process.env.NODE_ENV,
-
     // A Twilio number that you have purchased through the twilio.com web
     // interface or API
     twilioNumber: process.env.TWILIO_NUMBER,
@@ -25,6 +22,10 @@ module.exports = {
 
     // The port your web application will run on
     port: process.env.PORT || 3000,
+
+    // Validate Twilio Requests in production using Express middleware
+    // See: https://www.twilio.com/docs/api/security#validating-requests
+    shouldValidate: process.env.SHOULD_VALIDATE == 'true' || false,
 
     // workspace stuffs
     workspaceSid: process.env.WORKSPACE_SID,
