@@ -24,13 +24,9 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res
     }
 });
 
-// Using {strict: false} makes the model schemaless.
-var workspaceEventSchema = new mongoose.Schema({}, { strict: false });
-var WorkspaceEvent = mongoose.model('WorkspaceEvent', workspaceEventSchema);
-
-// Using {strict: false} makes the model schemaless.
-var assignmentCallbackSchema = new mongoose.Schema({}, { strict: false });
-var AssignmentCallback = mongoose.model('AssignmentCallback', assignmentCallbackSchema);
+// load the model schema
+require('../models/AssignmentCallback');
+require('../models/WorkspaceEvent');
 
 // Configure application routes
 module.exports = function (app) {
