@@ -169,7 +169,6 @@ class App extends React.Component {
             return;
         }
 
-        this.log.checkpoint();
         this.log.info('accepting incoming call from: ' + from);
         this.setState({
             softphoneState: state.Call.ALERTING,
@@ -190,7 +189,12 @@ class App extends React.Component {
 
     cleared() {
         this.log.info('call clear');
-
+        this.setState({
+            softphoneState: state.Call.CLEAR,
+            softphoneFrom: null,
+            workTask: null,
+        });
+        /*
         this.state.workTask.complete((err, task) => {
             if (err) {
                 state.error(err);
@@ -202,12 +206,12 @@ class App extends React.Component {
                 softphoneState: state.Call.CLEAR,
                 softphoneFrom: null,
                 workTask: null,
-            });    
+            });
         });
+        */
     }
 
     callerHup() {
-        // TODO this doesn't seem to be propigated with current conference tactic.
         this.log.info('caller hung up');
         this.setState({
             softphoneState: state.Call.CLEAR,
@@ -235,18 +239,32 @@ class App extends React.Component {
     }
 
     reservationCreated(reservation) {
-        this.log.info("Reservation " + reservation.sid + " incoming");
+        this.log.info("Reservation " + reservation.sid + " incoming!");
 
-        reservation.accept();
+        // reservation.accept();
+        /*
+        reservation.conference(
+            '+12104056986', // from number
+            null, // post work activity sid
+            15, // seconds before timeout
+            null, // contact uri
+            (err, res) => {
+                if (err) {
+                    console.log("CONFERENCE ERROR", err);
+                    return;
+                }
+
+                console.log("CONFERENCED: ", res);
+                res.accept();
+            });
+        */
+
     }
 
     reservationAccepted(reservation) {
+        this.log.checkpoint();
         this.log.info("Reservation " + reservation.sid + " accepted!");
         this.log.info('conferencing');
-        reservation.conference(null, null, null, null, null, {
-            'From': '+12104056986' // TODO get from config
-        });
-
         this.setState({ workTask: reservation.task });
     }
 
@@ -292,7 +310,7 @@ class App extends React.Component {
         return (
             <div>
                 <Navbar brand='CTC' items={navItems} />
-                
+
                 <h1>Agent Experience</h1>
 
                 <div className="row">

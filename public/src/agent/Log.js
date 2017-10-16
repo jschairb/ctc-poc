@@ -6,6 +6,7 @@ function Log(props) {
 
     let cpTime = props.loadTime;
     const entries = props.entries.map((entry, index) => {
+
         if (entry.level == 'checkpoint') {
             cpTime = entry.time;
         }

@@ -115,3 +115,6 @@ new tooling
 - babel – copmiles all js for common compatibility
 - webpack – assembles all js & css into bundles
 - bootstrap – to look as good as the old stuff, but be bundled; [build config docs](http://getbootstrap.com/docs/4.0/getting-started/webpack/)
+
+# Heroku logs
+heroku logs -a ctc-poc -t
