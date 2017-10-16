@@ -235,25 +235,23 @@ class App extends React.Component {
     }
 
     reservationCreated(reservation) {
-        this.log.info("incoming reservation: " + reservation.task.attributes.from);
+        this.log.info("Reservation " + reservation.sid + " incoming");
 
-        reservation.accept((error, reservation) => {
-            this.log.info('conferencing');
-            reservation.conference(null, null, null, null, null, {
-                'From': '+12104056986' // TODO get from config
-            });
-        });
+        reservation.accept();
     }
 
     reservationAccepted(reservation) {
         this.log.info("Reservation " + reservation.sid + " accepted!");
-        let attrs = reservation.task.attributes;
+        this.log.info('conferencing');
+        reservation.conference(null, null, null, null, null, {
+            'From': '+12104056986' // TODO get from config
+        });
+
         this.setState({ workTask: reservation.task });
     }
 
     reservationRejected(reservation) {
         this.log.info("Reservation " + reservation.sid + " rejected!");
-
     }
 
     reservationTimeout(reservation) {
