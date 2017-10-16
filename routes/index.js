@@ -101,7 +101,12 @@ module.exports = function (app) {
                 console.log("END_CTC_AGENT_ANSWERS:");
 
                 twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-                twimlResponse.dial(taskAttributes.phoneNumber, { callerId: config.twilioNumber });
+                twimlResponse.dial(taskAttributes.phoneNumber,
+                                   {
+                                       callerId: config.twilioNumber,
+                                       record: "record-from-answer-dual"
+                                   });
+                twimlResponse.say("This call may be monitored or recorded for quality and training purposes.");
                 response.send(twimlResponse.toString());
             }, (error) => {console.log("ERROR", error)});
     });
@@ -147,6 +152,7 @@ module.exports = function (app) {
             accept: false,
             from: config.twilioNumber,
             instruction: "call",
+            record: "record-from-answer",
             timeout: 10,
             url: url
         };
