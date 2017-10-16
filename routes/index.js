@@ -27,6 +27,8 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res
 // load the model schema
 var AssignmentCallback = require('../models/AssignmentCallback');
 var WorkspaceEvent = require('../models/WorkspaceEvent');
+console.log('AC', AssignmentCallback);
+console.log('WE', AssignmentCallback);
 
 // Configure application routes
 module.exports = function (app) {
