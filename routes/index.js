@@ -117,7 +117,8 @@ module.exports = function (app) {
     });
 
     app.get('/agent', (request, response) => {
-        response.render('agent');
+        let p = path.join(process.cwd(), 'public', 'agent.html');
+        response.sendfile(p);
     });
 
     app.get('/client-token', (request, response) => {

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import Navbar from './Navbar';
 import Login from './Login';
 import Log from './Log';
 import SoftPhone from './SoftPhone';
@@ -225,12 +226,7 @@ class App extends React.Component {
     }
 
     reservationCreated(reservation) {
-        this.log.info("-----");
-        this.log.info("You have been reserved to handle a call!");
-        this.log.info("Call from: " + reservation.task.attributes.from);
-        this.log.info("Selected language: " + reservation.task.attributes.selected_language);
-        this.log.info("-----");
-        this.log.info('accepting reservation');
+        this.log.info("incoming reservation: " + reservation.task.attributes.from);
 
         reservation.accept((error, reservation) => {
             this.log.info('conferencing');
@@ -272,11 +268,25 @@ class App extends React.Component {
     }
 
     render() {
+        const navItems = [
+            {
+                text: 'Customer Experience',
+                href: '/',
+                active: false,
+            },
+            {
+                text: 'Agent Experience',
+                href: '/agent',
+                active: true,
+            },
+
+        ];
+
         return (
             <div>
+                <Navbar brand='CTC' items={navItems} />
+                
                 <h1>Agent Experience</h1>
-
-                <hr />
 
                 <div className="row">
 
