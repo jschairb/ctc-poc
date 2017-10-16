@@ -1,9 +1,10 @@
 import React from 'react';
+import Card from './Card';
 import * as time from '../time';
 
 function Log(props) {
-    let cpTime = props.loadTime;
 
+    let cpTime = props.loadTime;
     const entries = props.entries.map((entry, index) => {
         if (entry.level == 'checkpoint') {
             cpTime = entry.time;
@@ -15,7 +16,7 @@ function Log(props) {
             case 'checkpoint':
                 return (
                     <tr key={index} className="table-primary">
-                        <td>&check;</td>
+                        <td>☆</td>
                         <td>{cpTime.toISOString()}</td>
                     </tr>                
                 );
@@ -24,7 +25,7 @@ function Log(props) {
                 return (
                     <tr key={index}>
                         <td>{dur.toString()}</td>
-                        <td>{entry.message}</td>
+                        <td className="log-message">{entry.message}</td>
                     </tr>
                 );
 
@@ -32,12 +33,7 @@ function Log(props) {
                 return (
                     <tr key={index} className="table-danger">
                         <td>{dur.toString()}</td>
-                        <td>
-                            <strong>Error</strong>
-                            <pre>
-                                {entry.message}
-                            </pre>
-                        </td>
+                        <td className="log-message text-danger">{entry.message}</td>
                     </tr>
                 );
         }
@@ -45,20 +41,18 @@ function Log(props) {
     });
 
     return (
-        <div className="card">
-            <div className="card-body">
-                <h2>Activity</h2>
-                <table className="table">
-                    <thead>
-                        <tr>
-                        <th>&delta;</th>
-                        <th>message</th>
-                        </tr>
-                    </thead>
-                    <tbody>{entries}</tbody>
-                </table>
-            </div>        
-        </div>
+        <Card title="Activity">
+            <table className="table table-sm">
+                <thead>
+                    <tr>
+                    <th>&delta;</th>
+                    <th>message</th>
+                    </tr>
+                </thead>
+                <tbody>{entries}</tbody>
+            </table>
+        </Card>
+
     );
 }
 

@@ -1,4 +1,4 @@
-async function getClientToken(agentName) {
+function getClientToken(agentName) {
     return new Promise((resolve, reject) => {
         $.getJSON('/client-token', { agentName: agentName })
             .done((resp) => {
@@ -10,7 +10,7 @@ async function getClientToken(agentName) {
     });
 }
 
-async function getWorkerToken(agentName) {
+function getWorkerToken(agentName) {
     return new Promise((resolve, reject) => {
         $.getJSON('/worker-token', { agentName: agentName })
             .done((resp) => {
