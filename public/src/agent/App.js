@@ -190,10 +190,19 @@ class App extends React.Component {
 
     cleared() {
         this.log.info('call clear');
-        this.setState({
-            softphoneState: state.Call.CLEAR,
-            softphoneFrom: null,
-            workTask: null,
+
+        this.state.workTask.complete((err, task) => {
+            if (err) {
+                state.error(err);
+                return;
+            }
+
+            this.log.info("task completed: " + task.sid);
+            this.setState({
+                softphoneState: state.Call.CLEAR,
+                softphoneFrom: null,
+                workTask: null,
+            });    
         });
     }
 

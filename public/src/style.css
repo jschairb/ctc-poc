@@ -5,3 +5,7 @@ body {
 .log-message {
     font-family: monospace;
 }
+
+.log-checkpoint {
+    font-weight: bold;
+}

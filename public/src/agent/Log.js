@@ -15,8 +15,8 @@ function Log(props) {
         switch (entry.level) {
             case 'checkpoint':
                 return (
-                    <tr key={index} className="table-primary">
-                        <td>☆</td>
+                    <tr key={index} className="table-info log-checkpoint">
+                        <td>&nbsp;</td>
                         <td>{cpTime.toISOString()}</td>
                     </tr>                
                 );
