@@ -140,14 +140,18 @@ module.exports = function (app) {
             .fetch()
             .then((task) => {
                 let taskAttributes = JSON.parse(task.attributes);
-                var twimlResponse = new VoiceResponse();
+                let twimlResponse = new VoiceResponse();
                 twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-                twimlResponse.dial(taskAttributes.phoneNumber,
-                    {
-                        callerId: config.twilioNumber,
-                        record: "record-from-answer-dual"
-                    });
-                twimlResponse.say("This call may be monitored or recorded for quality and training purposes.");
+                twimlResponse.say('Hi agent, This call may be monitored or recorded for quality and training purposes.');
+
+                let dial = twimlResponse.dial({
+                    callerId: config.twilioNumber,
+                    record: "record-from-answer-dual"
+                });
+
+                dial.number({
+                    url: `https://${request.headers.host}/callbacks/ctc-customer-pre-connect`,
+                }, taskAttributes.phoneNumber);
                 response.send(twimlResponse.toString());
             }, (error) => {
                 console.log("ERROR", error)
@@ -168,14 +172,21 @@ module.exports = function (app) {
             .update({ assignmentStatus: 'completed', reason: 'call clear' })
             .then((task) => {
                 console.log("TASK COMPLETE", task.assignmentStatus, task.reason);
-                response.status(200).send();
+                response.status(200).send('OK');
             }, (error) => {
                 console.log("ERROR", error)
                 response.status(500).send(error);
             });
     });
 
-    
+    app.post('/callbacks/ctc-customer-pre-connect', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log('CTC CUSTOMER PRE-CONNECT');
+        let twimlResponse = new VoiceResponse();
+        twimlResponse.say('Hi customer, This call may be monitored or recorded for quality and training purposes.');
+        response.send(twimlResponse.toString());
+    });
+
+
     /* EVENT HANDLERS */
 
     // Twilio Voice Call Status Change Webhook
