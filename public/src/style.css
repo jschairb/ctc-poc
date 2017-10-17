@@ -1,0 +1,11 @@
+body { 
+    padding-top: 70px; 
+}
+
+.log-message {
+    font-family: monospace;
+}
+
+.log-checkpoint {
+    font-weight: bold;
+}

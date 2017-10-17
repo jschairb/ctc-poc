@@ -25,8 +25,8 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, function (err, res
 });
 
 // load the model schema
-require('../models/AssignmentCallback');
-require('../models/WorkspaceEvent');
+var AssignmentCallback = require('../models/AssignmentCallback');
+var WorkspaceEvent = require('../models/WorkspaceEvent');
 
 // Configure application routes
 module.exports = function (app) {
@@ -44,6 +44,9 @@ module.exports = function (app) {
 
     // Use morgan for HTTP request logging
     app.use(morgan('combined'));
+
+
+    /* CUSTOMER EXPERIENCE HANDLERS */
 
     // Home Page with Click to Call
     app.get('/', (request, response) => {
@@ -75,49 +78,12 @@ module.exports = function (app) {
             });
     });
 
-    // This must come before /callbacks/:uuid to be matched explictly.
-    app.post('/callbacks/ctc-agent-answers', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
-        var attributes = request.body;
-        var twimlResponse = new VoiceResponse();
 
-        console.log("BEGIN_CTC_AGENT_ANSWERS:");
-        console.log(attributes);
-        console.log("END_CTC_AGENT_ANSWERS:");
-
-        let workspaceSid = request.query.WorkspaceSid,
-            taskSid = request.query.TaskSid;
-
-        twilio_client.taskrouter.v1
-            .workspaces(workspaceSid)
-            .tasks(taskSid)
-            .fetch()
-            .then((task) => {
-                var attributes = request.body;
-                let taskAttributes = JSON.parse(task.attributes);
-
-                var twimlResponse = new VoiceResponse();
-                console.log("BEGIN_CTC_AGENT_ANSWERS:");
-                console.log(attributes);
-                console.log("END_CTC_AGENT_ANSWERS:");
-
-                twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-                twimlResponse.dial(taskAttributes.phoneNumber,
-                                   {
-                                       callerId: config.twilioNumber,
-                                       record: "record-from-answer-dual"
-                                   });
-                twimlResponse.say("This call may be monitored or recorded for quality and training purposes.");
-                response.send(twimlResponse.toString());
-            }, (error) => {console.log("ERROR", error)});
-    });
-
-    // Twilio Voice Call Status Change Webhook
-    app.post('/events/voice', (request, response) => {
-        response.status(200).send('OK');
-    });
+    /* AGENT EXPERIENCE HANDLERS */
 
     app.get('/agent', (request, response) => {
-        response.render('agent');
+        let p = path.join(process.cwd(), 'public', 'agent.html');
+        response.sendfile(p);
     });
 
     app.get('/client-token', (request, response) => {
@@ -136,45 +102,114 @@ module.exports = function (app) {
         response.send(tok);
     });
 
+
+    /* TASK ROUTING HANDLERS */
+
     // For a full list of what will be posted, please refer to the following
     // url:
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
-    app.post('/assignment_callbacks', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
-        var attributes = request.body;
-        console.log("BEGIN_ASSIGNMENT_CALLBACKS:");
-        console.log(attributes);
-        console.log("END_ASSIGNMENT_CALLBACKS:");
-        response.status(200);
+    app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log("ASSIGNMENT CALLBACK", request.query, request.body);
 
-        var url = `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${attributes.WorkspaceSid}&TaskSid=${attributes.TaskSid}`;
-        var callbackResponse = {
-            accept: false,
-            from: config.twilioNumber,
-            instruction: "call",
-            record: "record-from-answer",
-            timeout: 10,
-            url: url
-        };
+        let workspaceSid = request.body.WorkspaceSid,
+            taskSid = request.body.TaskSid,
+            callbackResponse = {
+                accept: true,
+                from: config.twilioNumber,
+                instruction: "call",
+                record: "record-from-answer",
+                timeout: 10,
+                url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
+                status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`
+            };
+
         response.status(200).send(callbackResponse);
-        return;
+    });
+
+    // This must come before /callbacks/:uuid to be matched explictly.
+    app.post('/callbacks/ctc-agent-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log("CTC AGENT ANSWERS", request.query, request.body);
+
+        let workspaceSid = request.query.WorkspaceSid,
+            taskSid = request.query.TaskSid;
+
+        twilio_client.taskrouter.v1
+            .workspaces(workspaceSid)
+            .tasks(taskSid)
+            .fetch()
+            .then((task) => {
+                let taskAttributes = JSON.parse(task.attributes);
+                let twimlResponse = new VoiceResponse();
+                twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
+                twimlResponse.say('Hi agent, This call may be monitored or recorded for quality and training purposes.');
+
+                let dial = twimlResponse.dial({
+                    callerId: config.twilioNumber,
+                    record: "record-from-answer-dual"
+                });
+
+                dial.number({
+                    url: `https://${request.headers.host}/callbacks/ctc-customer-pre-connect`,
+                }, taskAttributes.phoneNumber);
+                response.send(twimlResponse.toString());
+            }, (error) => {
+                console.log("ERROR", error)
+                response.status(500).send(error);
+            });
+    });
+
+    app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        let workspaceSid = request.query.WorkspaceSid,
+            taskSid = request.query.TaskSid;
+
+        console.log('CTC AGENT COMPLETE');
+
+        // complete the task
+        twilio_client.taskrouter.v1
+            .workspaces(workspaceSid)
+            .tasks(taskSid)
+            .update({ assignmentStatus: 'completed', reason: 'call clear' })
+            .then((task) => {
+                console.log("TASK COMPLETE", task.assignmentStatus, task.reason);
+                response.status(200).send('OK');
+            }, (error) => {
+                console.log("ERROR", error)
+                response.status(500).send(error);
+            });
+    });
+
+    app.post('/callbacks/ctc-customer-pre-connect', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log('CTC CUSTOMER PRE-CONNECT');
+        let twimlResponse = new VoiceResponse();
+        twimlResponse.say('Hi customer, This call may be monitored or recorded for quality and training purposes.');
+        response.send(twimlResponse.toString());
+    });
+
+
+    /* EVENT HANDLERS */
+
+    // Twilio Voice Call Status Change Webhook
+    app.post('/events/voice', (request, response) => {
+        response.status(200).send('OK');
     });
 
     // For a full list of what will be posted, please refer to the following
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
-    app.post('/events/workspaces', twilio.webhook({validate: config.shouldValidate}), (request, response) => {
+    app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log("WORKSPACE EVENT", request.body.EventType, request.body.EventDescription)
+        /* TODO getting error on WorkspaceEvent not being a constructor, silencing for now
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
-                if (attributes["EventType"] == 'reservation.accepted') {
-
-                };
                 response.status(200).send('OK');
             } else {
                 console.error(err);
                 response.status(500).send(err);
             };
         });
+        */
     });
+
 };
