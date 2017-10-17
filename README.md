@@ -116,5 +116,43 @@ new tooling
 - webpack – assembles all js & css into bundles
 - bootstrap – to look as good as the old stuff, but be bundled; [build config docs](http://getbootstrap.com/docs/4.0/getting-started/webpack/)
 
-# Heroku logs
-heroku logs -a ctc-poc -t
+# Heroku
+
+deploy: `git push -f heroku ${my_branch}:master`
+view logs: `heroku logs -a ctc-poc -t`
+
+# Manual Test Procedure
+
+preliminary checks:
+1. assert customer phone
+1. assert no incomplete tasks exist in [Twilio Task Router](https://www.twilio.com/console/taskrouter/workspaces/WS0a97843504cc448625dfa55723900216/tasks)
+
+## Test customer experience
+1. open two tabs with developer consoles:
+   1. [customer experience](https://ctc-poc.herokuapp.com/)
+   1. [agent experience](https://ctc-poc.herokuapp.com/agent)
+1. in the agent experience tab: _become ready to handle callbacks_
+   1. login as `agent`
+   1. ensure work activity is `Idle`
+1. in the customer experience tab: _request callback_
+   1. fill out form describing issue & customer DID
+   1. submit form
+   1. [ ] *observe* confirmation of call request
+1. in the agent experience tab: _handle callback_
+   1. [ ] *observe* incoming call with data from customer form
+   1. [ ] *observe* outgoing softphone call to customer; ring … ring …
+1. [ ] *observe* ringing on customer phone from twilio number
+   1. answer customer phone
+   [ ] *observe* call recording warning
+   1. make noise in customer phone
+   [ ] *observe* noise from agent soft-phone
+1. in the agent experience tab
+   1. [ ] *observe* call recording warning
+   1. [ ] *observe* noise from customer phone
+   1. make noise in agent soft-phone
+1. end call: two scenarios: customer or agent termination
+   1. in agent experience: observe clear softphone
+
+post checks
+1. observe no errors or warning from [Twilio Debugger](https://www.twilio.com/console/runtime/debugge)
+1. observe no errors in developer console in any open tabls
