@@ -45,6 +45,9 @@ module.exports = function (app) {
     // Use morgan for HTTP request logging
     app.use(morgan('combined'));
 
+
+    /* CUSTOMER EXPERIENCE HANDLERS */
+
     // Home Page with Click to Call
     app.get('/', (request, response) => {
         response.render('index');
@@ -73,6 +76,55 @@ module.exports = function (app) {
                 console.error(error);
                 response.status(500).send(error);
             });
+    });
+
+
+    /* AGENT EXPERIENCE HANDLERS */
+
+    app.get('/agent', (request, response) => {
+        let p = path.join(process.cwd(), 'public', 'agent.html');
+        response.sendfile(p);
+    });
+
+    app.get('/client-token', (request, response) => {
+        let tok = token.getClientToken(request.query.agentName)
+        response.send(tok);
+    });
+
+    app.get('/worker-token', (request, response) => {
+        let tok = token.getWorkerToken(
+            request.query.agentName,
+            config.accountSid,
+            config.authToken,
+            config.workspaceSid,
+            config.workerSid
+        );
+        response.send(tok);
+    });
+
+
+    /* TASK ROUTING HANDLERS */
+
+    // For a full list of what will be posted, please refer to the following
+    // url:
+    // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
+    // This must respond within 5 seconds or it will move the Fallback URL.
+    app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log("ASSIGNMENT CALLBACK", request.query, request.body);
+
+        let workspaceSid = request.body.WorkspaceSid,
+            taskSid = request.body.TaskSid,
+            callbackResponse = {
+                accept: true,
+                from: config.twilioNumber,
+                instruction: "call",
+                record: "record-from-answer",
+                timeout: 10,
+                url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
+                status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`
+            };
+
+        response.status(200).send(callbackResponse);
     });
 
     // This must come before /callbacks/:uuid to be matched explictly.
@@ -108,7 +160,7 @@ module.exports = function (app) {
             taskSid = request.query.TaskSid;
 
         console.log('CTC AGENT COMPLETE');
-        
+
         // complete the task
         twilio_client.taskrouter.v1
             .workspaces(workspaceSid)
@@ -117,33 +169,14 @@ module.exports = function (app) {
             .then((task) => {
                 console.log("TASK COMPLETE", task.assignmentStatus, task.reason);
                 response.status(200).send();
-            }, (error) => { 
+            }, (error) => {
                 console.log("ERROR", error)
                 response.status(500).send(error);
             });
     });
 
-    // For a full list of what will be posted, please refer to the following
-    // url:
-    // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
-    // This must respond within 5 seconds or it will move the Fallback URL.
-    app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log("ASSIGNMENT CALLBACK", request.query, request.body);
-
-        let workspaceSid = request.body.WorkspaceSid,
-            taskSid = request.body.TaskSid,
-            callbackResponse = {
-                accept: true,
-                from: config.twilioNumber,
-                instruction: "call",
-                record: "record-from-answer",
-                timeout: 10,
-                url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
-                status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`
-            };
-
-        response.status(200).send(callbackResponse);
-    });
+    
+    /* EVENT HANDLERS */
 
     // Twilio Voice Call Status Change Webhook
     app.post('/events/voice', (request, response) => {
@@ -154,43 +187,16 @@ module.exports = function (app) {
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log("WORKSPACE EVENT", request.body.EventType, request.body.EventDescription)
-        response.status(200).send('OK');
-
-        /*
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
             if (!err) {
-                if (attributes["EventType"] == 'reservation.accepted') {
-
-                };
                 response.status(200).send('OK');
             } else {
                 console.error(err);
                 response.status(500).send(err);
             };
         });
-        */
     });
 
-    app.get('/agent', (request, response) => {
-        let p = path.join(process.cwd(), 'public', 'agent.html');
-        response.sendfile(p);
-    });
-
-    app.get('/client-token', (request, response) => {
-        let tok = token.getClientToken(request.query.agentName)
-        response.send(tok);
-    });
-
-    app.get('/worker-token', (request, response) => {
-        let tok = token.getWorkerToken(
-            request.query.agentName,
-            config.accountSid,
-            config.authToken,
-            config.workspaceSid,
-            config.workerSid
-        );
-        response.send(tok);
-    });
 };
