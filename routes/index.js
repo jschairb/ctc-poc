@@ -198,6 +198,7 @@ module.exports = function (app) {
     // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log("WORKSPACE EVENT", request.body.EventType, request.body.EventDescription)
+        /* TODO getting error on WorkspaceEvent not being a constructor, silencing for now
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
         workspaceEvent.save(function (err) {
@@ -208,6 +209,7 @@ module.exports = function (app) {
                 response.status(500).send(err);
             };
         });
+        */
     });
 
 };
