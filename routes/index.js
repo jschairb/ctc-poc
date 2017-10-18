@@ -112,13 +112,13 @@ module.exports = (app) => {
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log('ASSIGNMENT CALLBACK', request.query, request.body);
+
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
-
         const callbackResponse = {
             accept: true,
             from: config.twilioNumber,
-            instruction: 'call',
+            instruction: 'conference',
             record: 'record-from-answer',
             timeout: 10,
             url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
