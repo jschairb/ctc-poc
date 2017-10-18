@@ -51,7 +51,10 @@ class App extends React.Component {
         super(props);
 
         this.state = {
-            logEntries: [],
+            loadTime: new Date(),
+            logEntries: [
+                { time: new Date(), message: 'initialized', level: 'info' }
+            ],
 
             loginState: state.Login.OFFLINE,
             loginUser: '',
