@@ -339,7 +339,7 @@ class App extends React.Component {
                     </div>
 
                     <div className="col-lg-6">
-                        <Log entries={this.state.logEntries} loadTime={new Date()} />
+                        <Log entries={this.state.logEntries} loadTime={this.state.loadTime} />
                     </div>
 
 
