@@ -14,7 +14,6 @@ let VoiceResponse = twilio.twiml.VoiceResponse;
 // Create a Twilio REST API client for authenticated requests to Twilio
 let twilio_client = twilio(config.accountSid, config.authToken);
 
-
 // Create a Mongoose object to connect with MongoDB
 let mongoose = require('mongoose');
 
@@ -225,9 +224,6 @@ module.exports = (app) => {
     // WHEN AGENT CLEARS
     // mark task complete
     app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        let workspaceSid = request.query.WorkspaceSid;
-        let taskSid = request.query.TaskSid;
-
         console.log('CTC AGENT COMPLETE');
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
@@ -275,7 +271,6 @@ module.exports = (app) => {
     app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log('WORKSPACE EVENT', request.body.EventType, request.body.EventDescription);
         response.status(200).send('OK');
-
         /* TODO getting error on WorkspaceEvent not being a constructor, silencing for now
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
