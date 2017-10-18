@@ -225,6 +225,9 @@ module.exports = (app) => {
     // WHEN AGENT CLEARS
     // mark task complete
     app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        let workspaceSid = request.query.WorkspaceSid;
+        let taskSid = request.query.TaskSid;
+
         console.log('CTC AGENT COMPLETE');
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
