@@ -41,6 +41,7 @@ class App extends React.Component {
 
         this.state = {
             loadTime: new Date(),
+
             logEntries: [
                 { time: new Date(), message: 'initialized', level: 'info' }
             ],

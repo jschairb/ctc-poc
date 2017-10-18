@@ -112,13 +112,15 @@ module.exports = (app) => {
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log('ASSIGNMENT CALLBACK', request.query, request.body);
+        // response.status(200).send('OkK');
 
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
+
         const callbackResponse = {
             accept: true,
             from: config.twilioNumber,
-            instruction: 'conference',
+            instruction: 'call',
             record: 'record-from-answer',
             timeout: 10,
             url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
@@ -141,11 +143,14 @@ module.exports = (app) => {
             .tasks(taskSid)
             .fetch()
             .then((task) => {
+                // link this call to a conference
                 const taskAttributes = JSON.parse(task.attributes);
                 const customerNumber = taskAttributes.phoneNumber;
+
                 const twimlResponse = new VoiceResponse();
                 twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
                 twimlResponse.say('Hi agent, This call may be monitored or recorded for quality and training purposes.');
+
                 const dial = twimlResponse.dial({
                     callerId: config.twilioNumber,
                     record: 'record-from-answer-dual',
