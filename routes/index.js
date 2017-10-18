@@ -29,7 +29,7 @@ var AssignmentCallback = require('../models/AssignmentCallback');
 var WorkspaceEvent = require('../models/WorkspaceEvent');
 
 // Configure application routes
-module.exports = function (app) {
+module.exports = (app) => {
     // Set Jade as the default template engine
     app.set('view engine', 'jade');
 
@@ -39,7 +39,7 @@ module.exports = function (app) {
 
     // Parse incoming request bodies as form-encoded
     app.use(bodyParser.urlencoded({
-        extended: true
+        extended: true,
     }));
 
     // Use morgan for HTTP request logging
@@ -55,7 +55,6 @@ module.exports = function (app) {
 
     // Handle an AJAX POST request to place an outbound call
     app.post('/call', (request, response) => {
-
         // The contract for the POSTed document can be found in /public/app.js#75
         // I've refrained from repeating it here, although, it could be
         // necessary should we want to augment the tasks with something else.
@@ -110,19 +109,19 @@ module.exports = function (app) {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log("ASSIGNMENT CALLBACK", request.query, request.body);
+        console.log('ASSIGNMENT CALLBACK', request.query, request.body);
 
-        let workspaceSid = request.body.WorkspaceSid,
-            taskSid = request.body.TaskSid,
-            callbackResponse = {
-                accept: true,
-                from: config.twilioNumber,
-                instruction: "call",
-                record: "record-from-answer",
-                timeout: 10,
-                url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
-                status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`
-            };
+        const workspaceSid = request.body.WorkspaceSid;
+        const taskSid = request.body.TaskSid;
+        const callbackResponse = {
+            accept: true,
+            from: config.twilioNumber,
+            instruction: 'conference',
+            record: 'record-from-answer',
+            timeout: 10,
+            url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
+            status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
+        };
 
         response.status(200).send(callbackResponse);
     });
