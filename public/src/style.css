@@ -7,5 +7,19 @@ body {
 }
 
 .log-checkpoint {
+    font-family: monospace;
     font-weight: bold;
+}
+
+.log-delta {
+    font-family: monospace;
+    text-align: right;
+}
+
+.log-delta-header {
+    text-align: right;
+}
+
+.log-message-header {
+    text-align: left;
 }

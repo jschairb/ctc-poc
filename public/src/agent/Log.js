@@ -25,7 +25,7 @@ function Log(props) {
             case 'info':
                 return (
                     <tr key={index}>
-                        <td>{dur.toString()}</td>
+                        <td className="log-delta">{dur.toString()}</td>
                         <td className="log-message">{entry.message}</td>
                     </tr>
                 );
@@ -46,8 +46,8 @@ function Log(props) {
             <table className="table table-sm">
                 <thead>
                     <tr>
-                    <th>&delta;</th>
-                    <th>message</th>
+                    <th className="log-delta-header">&delta;</th>
+                    <th className="log-message-header">message</th>
                     </tr>
                 </thead>
                 <tbody>{entries}</tbody>
