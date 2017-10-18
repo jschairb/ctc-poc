@@ -110,13 +110,15 @@ module.exports = (app) => {
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log('ASSIGNMENT CALLBACK', request.query, request.body);
+        // response.status(200).send('OkK');
 
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
+
         const callbackResponse = {
             accept: true,
             from: config.twilioNumber,
-            instruction: 'conference',
+            instruction: 'call',
             record: 'record-from-answer',
             timeout: 10,
             url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
@@ -130,28 +132,42 @@ module.exports = (app) => {
     app.post('/callbacks/ctc-agent-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log("CTC AGENT ANSWERS", request.query, request.body);
 
-        let workspaceSid = request.query.WorkspaceSid,
-            taskSid = request.query.TaskSid;
+        const workspaceSid = request.query.WorkspaceSid;
+        const taskSid = request.query.TaskSid;
 
         twilio_client.taskrouter.v1
             .workspaces(workspaceSid)
             .tasks(taskSid)
             .fetch()
             .then((task) => {
-                let taskAttributes = JSON.parse(task.attributes);
-                let twimlResponse = new VoiceResponse();
+                // link this call to a conference
+                const taskAttributes = JSON.parse(task.attributes);
+                const customerNumber = taskAttributes.phoneNumber;
+
+                const twimlResponse = new VoiceResponse();
                 twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
                 twimlResponse.say('Hi agent, This call may be monitored or recorded for quality and training purposes.');
 
-                let dial = twimlResponse.dial({
+                const dial = twimlResponse.dial({
                     callerId: config.twilioNumber,
-                    record: "record-from-answer-dual"
+                    record: 'record-from-answer-dual',
                 });
 
+                /*
                 dial.number({
                     url: `https://${request.headers.host}/callbacks/ctc-customer-pre-connect`,
                 }, taskAttributes.phoneNumber);
+                */
+
+                dial.conference(taskSid);
                 response.send(twimlResponse.toString());
+
+                // dial a customer and link that customer the conference too
+                twilio_client.calls.create({
+                    url: `https://${request.headers.host}/callbacks/ctc-customer-answer?TaskSid=${taskSid}`,
+                    to: customerNumber,
+                    from: config.twilioNumber,
+                }).then(call => console.log(`customer call created: ${call.sid}`));
             }, (error) => {
                 console.log("ERROR", error)
                 response.status(500).send(error);
@@ -159,8 +175,8 @@ module.exports = (app) => {
     });
 
     app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        let workspaceSid = request.query.WorkspaceSid,
-            taskSid = request.query.TaskSid;
+        let workspaceSid = request.query.WorkspaceSid;
+        let taskSid = request.query.TaskSid;
 
         console.log('CTC AGENT COMPLETE');
 
@@ -176,6 +192,20 @@ module.exports = (app) => {
                 console.log("ERROR", error)
                 response.status(500).send(error);
             });
+    });
+
+    app.post('/callbacks/ctc-customer-answer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log('CUSTOMER ANSWER', request.query, request.body);
+
+        const twimlResponse = new VoiceResponse();
+        const taskSid = request.query.TaskSid;
+        twimlResponse.say('Heyo customer, This call may be monitored or recorded for quality and training purposes.');
+        const dial = twimlResponse.dial({
+            callerId: config.twilioNumber,
+            record: 'record-from-answer-dual',
+        });
+        dial.conference(taskSid);
+        response.send(twimlResponse.toString());
     });
 
     app.post('/callbacks/ctc-customer-pre-connect', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {

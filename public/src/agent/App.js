@@ -11,27 +11,18 @@ import * as auth from './auth';
 import * as twilio from './twilio';
 import * as state from './state';
 
-// state transitions
-// TODO this could be more elegant, define transitions on state, not perform them
-class LogTrans {
-
+class LogStateTransformation {
     constructor(component) {
         this.component = component;
     }
 
-    /*
-        method call looks like side effect
-        transition take prevState*props => new state
-    */
-
     appendEntry(entry) {
-        this.component.setState((prevState, props) => ({
+        this.component.setState((prevState, _props) => ({
             logEntries: prevState.logEntries.concat(entry),
         }));
     }
 
     info(msg) {
-        // like return prevState.logEntries.concat(entry)
         this.appendEntry({ time: new Date(), message: msg, level: 'info' });
     }
 
@@ -42,16 +33,15 @@ class LogTrans {
     checkpoint() {
         this.appendEntry({ time: new Date(), level: 'checkpoint' });
     }
-
 }
 
 class App extends React.Component {
-
     constructor(props) {
         super(props);
 
         this.state = {
             loadTime: new Date(),
+
             logEntries: [
                 { time: new Date(), message: 'initialized', level: 'info' }
             ],
@@ -64,11 +54,15 @@ class App extends React.Component {
 
             workWorker: null,
             workTask: null,
-            workTask: null,
-        }
+            workSkills: [
+                'linux',
+                'windows',
+                'netsec',
+            ],
+        };
 
         // log state transitions maintained here
-        this.log = new LogTrans(this);
+        this.log = new LogStateTransformation(this);
 
         // auth
         this.login = this.login.bind(this);
@@ -91,6 +85,10 @@ class App extends React.Component {
         this.reservationCancelled = this.reservationCancelled.bind(this);
 
         this.changeActivity = this.changeActivity.bind(this);
+
+        // transfer actions
+        this.blindTransfer = this.blindTransfer.bind(this);
+        this.warmTransfer = this.warmTransfer.bind(this);
     }
 
     login(user) {
@@ -98,9 +96,9 @@ class App extends React.Component {
         this.log.info(`authenticating as: ${user}`);
 
         auth.getClientToken(user)
-            .then(clientToken => {
+            .then((clientToken) => {
                 this.setState({ loginState: state.Login.CONNECTING, loginUser: user });
-                this.log.info("acquired softphone token");
+                this.log.info('acquired softphone token');
                 return twilio.setupDevice(
                     clientToken,
                     this.established,
@@ -117,13 +115,13 @@ class App extends React.Component {
             })
             .catch((error) => {
                 console.log(error);
-                this.log.error('cannot setup softphone: ' + JSON.stringify(error));
+                this.log.error(`cannot setup softphone: ${JSON.stringify(error)}`);
             });
 
         auth.getWorkerToken(user)
-            .then(workerToken => {
+            .then((workerToken) => {
                 this.setState({ loginState: state.Login.CONNECTING, loginUser: user });
-                this.log.info("acquired worker token");
+                this.log.info('acquired worker token');
                 return twilio.setupWorker(
                     workerToken,
                     this.connected,
@@ -137,8 +135,8 @@ class App extends React.Component {
                     this.reservationCancelled,
                 );
             })
-            .then(worker => {
-                this.log.info(`Twilio.TaskRouter.Worker registered`);
+            .then((worker) => {
+                this.log.info('Twilio.TaskRouter.Worker registered');
                 this.log.info(`Twilio.TaskRouter.Worker sid: ${worker.sid}`);
                 this.log.info(`Twilio.TaskRouter.Worker name: ${worker.friendlyName}`);
                 this.log.info(`Twilio.TaskRouter.Worker activity: ${worker.activityName}`);
@@ -146,7 +144,7 @@ class App extends React.Component {
                 this.setState({ workWorker: worker });
                 return twilio.getActivities(worker);
             })
-            .then(activities => {
+            .then((activities) => {
                 this.setState((prevState, props) => {
                     let st = { workActivities: activities };
 
@@ -159,7 +157,7 @@ class App extends React.Component {
             })
             .catch((error) => {
                 console.log(error);
-                this.log.error('cannot setup worker: ' + error.toString());
+                this.log.error(`cannot setup worker: ${error.toString()}`);
             });
     }
 
@@ -167,12 +165,12 @@ class App extends React.Component {
     alerting(from, accept, reject) {
         this.log.info('call alerting');
         if (this.state.softphoneState == state.Call.ESTABLISHED) {
-            this.log.info('rejecting incoming call from: ' + from);
+            this.log.info(`rejecting incoming call from: ${from}`);
             reject();
             return;
         }
 
-        this.log.info('accepting incoming call from: ' + from);
+        this.log.info(`accepting incoming call from: ${from}`);
         this.setState({
             softphoneState: state.Call.ALERTING,
             softphoneFrom: from,
@@ -182,7 +180,7 @@ class App extends React.Component {
     }
 
     established(from, clearAction) {
-        this.log.info('call established from: ' + from);
+        this.log.info(`call established from: ${from}`);
         this.setState({
             softphoneState: state.Call.ESTABLISHED,
             softphoneFrom: from,
@@ -197,21 +195,6 @@ class App extends React.Component {
             softphoneFrom: null,
             workTask: null,
         });
-        /*
-        this.state.workTask.complete((err, task) => {
-            if (err) {
-                state.error(err);
-                return;
-            }
-
-            this.log.info("task completed: " + task.sid);
-            this.setState({
-                softphoneState: state.Call.CLEAR,
-                softphoneFrom: null,
-                workTask: null,
-            });
-        });
-        */
     }
 
     callerHup() {
@@ -224,75 +207,72 @@ class App extends React.Component {
 
     // work actions
     connected() {
-        this.log.info("Twilio.TaskRouter.Worker Websocket has connected");
+        this.log.info('Twilio.TaskRouter.Worker Websocket has connected');
     }
 
     disconnected() {
-        this.log.info("Twilio.TaskRouter.Worker Websocket has disconnected");
+        this.log.info('Twilio.TaskRouter.Worker Websocket has disconnected');
     }
 
     error(err) {
         console.error(err);
-        this.log.error('Twilio.TaskRouter.Worker error: ' + err);
+        this.log.error(`Twilio.TaskRouter.Worker error: ${err}`);
     }
 
     activityUpdate(worker) {
-        this.log.info("Worker activity changed to: " + worker.activityName);
-        this.setState({ workWorker: worker })
+        this.log.info(`Worker activity changed to: ${worker.activityName}`);
+        this.setState({ workWorker: worker });
     }
 
     reservationCreated(reservation) {
-        this.log.info("Reservation " + reservation.sid + " incoming!");
+        this.log.checkpoint();
+        this.log.info(`Reservation ${reservation.sid} incoming!`);
 
-        // reservation.accept();
         /*
-        reservation.conference(
-            '+12104056986', // from number
-            null, // post work activity sid
-            15, // seconds before timeout
-            null, // contact uri
-            (err, res) => {
-                if (err) {
-                    console.log("CONFERENCE ERROR", err);
-                    return;
-                }
+        reservation.conference(null, null, null, null, (error, res) => {
+            if (error) {
+                console.error(error);
+                return;
+            }
 
-                console.log("CONFERENCED: ", res);
-                res.accept();
-            });
+            res.accept();
+        }, { From: '12104056986' });
         */
-
     }
 
     reservationAccepted(reservation) {
-        this.log.checkpoint();
-        this.log.info("Reservation " + reservation.sid + " accepted!");
-        this.log.info('conferencing');
+        this.log.info(`Reservation ${reservation.sid} accepted!`);
         this.setState({ workTask: reservation.task });
     }
 
     reservationRejected(reservation) {
-        this.log.info("Reservation " + reservation.sid + " rejected!");
+        this.log.info(`Reservation ${reservation.sid} rejected!`);
     }
 
     reservationTimeout(reservation) {
-        this.log.info("Reservation " + reservation.sid + " timed out!");
+        this.log.info(`Reservation ${reservation.sid} timed out!`);
     }
 
     reservationCancelled(reservation) {
-        this.log.info("Reservation " + reservation.sid + " canceled!");
+        this.log.info(`Reservation ${reservation.sid} canceled!`);
     }
 
     changeActivity(event) {
-        let activitySid = event.target.value;
+        const activitySid = event.target.value;
+        this.log.info('changing activity');
         this.state.workWorker.update({ ActivitySid: activitySid }, (error, worker) => {
             if (error) {
                 this.log.error(error);
-                return;
             }
-
-            this.log.info('Twilio.TaskRouter.Worker change activity: ' + activitySid);
         });
+    }
+
+    blindTransfer() {
+        console.log('BLIND');
+    }
+
+    warmTransfer() {
+        console.log('WARM');
     }
 
     render() {
@@ -312,7 +292,7 @@ class App extends React.Component {
 
         return (
             <div>
-                <Navbar brand='CTC' items={navItems} />
+                <Navbar brand="CTC" items={navItems} />
 
                 <h1>Agent Experience</h1>
 
@@ -336,8 +316,12 @@ class App extends React.Component {
                         <Work
                             worker={this.state.workWorker}
                             activities={this.state.workActivities}
+                            skills={this.state.workSkills}
+                            taskQueues={this.state.workTaskQueues}
                             task={this.state.workTask}
-                            changeActivity={this.changeActivity} />
+                            changeActivity={this.changeActivity}
+                            blindTransfer={this.blindTransfer}
+                            warmTransfer={this.warmTransfer} />
 
                     </div>
 
