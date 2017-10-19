@@ -5,12 +5,15 @@ let path = require('path'),
     config = require('../config'),
     token = require('../models/token');
 
+const CallControl = require('../service/call_control');
+
 let twilio = require('twilio');
 
 let VoiceResponse = twilio.twiml.VoiceResponse;
 
 // Create a Twilio REST API client for authenticated requests to Twilio
 let twilio_client = twilio(config.accountSid, config.authToken);
+
 
 // Create a Mongoose object to connect with MongoDB
 let mongoose = require('mongoose');
@@ -28,6 +31,8 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, (err, res) => {
 // load the model schema
 let AssignmentCallback = require('../models/AssignmentCallback');
 let WorkspaceEvent = require('../models/WorkspaceEvent');
+
+const CallLeg = mongoose.model('CallLeg', new mongoose.Schema({}, { strict: false }));
 
 // Configure application routes
 module.exports = (app) => {
@@ -97,7 +102,8 @@ module.exports = (app) => {
             config.accountSid,
             config.authToken,
             config.workspaceSid,
-            config.workerSid);
+            config.workerSid
+        );
         response.send(tok);
     });
 
@@ -135,6 +141,7 @@ module.exports = (app) => {
 
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
+        const agentCallSid = request.body.CallSid;
 
         twilio_client.taskrouter.v1
             .workspaces(workspaceSid)
@@ -153,12 +160,53 @@ module.exports = (app) => {
                 dial.conference(taskSid);
                 response.send(twimlResponse.toString());
 
-                // call customer right now
-                twilio_client.calls.create({
-                    url: `https://${request.headers.host}/callbacks/ctc-customer-answers?TaskSid=${taskSid}`,
-                    to: customerNumber,
-                    from: config.twilioNumber,
-                }).then(call => console.log(`customer call created: ${call.sid}`));
+                // save agent leg
+                CallLeg.create({
+                    taskSid: taskSid,
+                    callSid: agentCallSid,
+                    role: 'agent',
+                    action: 'join',
+                    time: (new Date()).getTime(),
+                }, (err, record) => {
+                    if (err) {
+                        console.error('ERROR SAVING AGENT LEG', err);
+                        return;
+                    }
+
+                    console.log('AGENT LEG', record);
+
+                    // call customer right now
+                    twilio_client.calls.create({
+                        url: `https://${request.headers.host}/callbacks/ctc-customer-answers?TaskSid=${taskSid}`,
+                        to: customerNumber,
+                        from: config.twilioNumber,
+                    }).then((call) => {
+                        console.log(`customer call created: ${call.sid}`);
+                        // SAVE CUSTOMER SID HERE!
+                        const customerCallSid = call.sid;
+                        CallLeg.create({
+                            taskSid: taskSid,
+                            callSid: customerCallSid,
+                            role: 'customer',
+                            action: 'join',
+                            time: (new Date()).getTime(),
+                        }, (err, record) => {
+                            if (err) {
+                                console.error('ERROR SAVING CUSTOMER LEG', err);
+                                return;
+                            }
+                            console.log('CUSTOMER LEG', record);
+
+                            CallLeg.find({ taskSid: taskSid }).exec((err, result) => {
+                                if (err) {
+                                    console.error('ERROR FINDING LEGS', err);
+                                    return;
+                                }
+                                console.log('CALL LEGS:', result);
+                            });
+                        });
+                    });
+                });
             }, (error) => {
                 console.log('ERROR', error);
                 response.status(500).send(error);
@@ -215,7 +263,7 @@ module.exports = (app) => {
     app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         console.log('WORKSPACE EVENT', request.body.EventType, request.body.EventDescription);
         response.status(200).send('OK');
-        
+
         /* TODO getting error on WorkspaceEvent not being a constructor, silencing for now
         var attributes = request.body;
         var workspaceEvent = new WorkspaceEvent(attributes);
@@ -228,5 +276,22 @@ module.exports = (app) => {
             };
         });
         */
+    });
+
+    /* CALL CONTROL */
+
+    app.post('/hold-conf-participant', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        const { conferenceSid, participantSid } = request.params;
+        const callControl = new CallControl(twilio_client, config.accountSid);
+
+        callControl.holdConfParticipant(conferenceSid, participantSid)
+            .then((resp) => {
+                console.log(resp);
+                response.status(200).send(resp);
+            })
+            .catch((error) => {
+                console.error(resp);
+                response.status(500).send(error);
+            });
     });
 };
