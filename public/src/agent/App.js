@@ -5,7 +5,6 @@ import Login from './Login';
 import Log from './Log';
 import SoftPhone from './SoftPhone';
 import Work from './Work';
-import Card from './Card';
 
 import * as auth from './auth';
 import * as twilio from './twilio';
@@ -73,6 +72,9 @@ class App extends React.Component {
         this.cleared = this.cleared.bind(this);
         this.callerHup = this.callerHup.bind(this);
 
+        this.clear = this.clear.bind(this);
+        this.holdCustomer = this.holdCustomer.bind(this);
+
         // worker actions
         this.connected = this.connected.bind(this);
         this.disconnected = this.disconnected.bind(this);
@@ -85,14 +87,10 @@ class App extends React.Component {
         this.reservationCancelled = this.reservationCancelled.bind(this);
 
         this.changeActivity = this.changeActivity.bind(this);
-
-        // transfer actions
-        this.blindTransfer = this.blindTransfer.bind(this);
-        this.warmTransfer = this.warmTransfer.bind(this);
     }
 
     login(user) {
-        this.setState({ user: user });
+        // this.setState({ user: user });
         this.log.info(`authenticating as: ${user}`);
 
         auth.getClientToken(user)
@@ -161,7 +159,7 @@ class App extends React.Component {
             });
     }
 
-    // phone actions
+    // softphone callbacks
     alerting(from, accept, reject) {
         this.log.info('call alerting');
         if (this.state.softphoneState == state.Call.ESTABLISHED) {
@@ -188,6 +186,14 @@ class App extends React.Component {
         });
     }
 
+    callerHup() {
+        this.log.info('caller hung up');
+        this.setState({
+            softphoneState: state.Call.CLEAR,
+            softphoneFrom: null,
+        });
+    }
+
     cleared() {
         this.log.info('call clear');
         this.setState({
@@ -197,15 +203,30 @@ class App extends React.Component {
         });
     }
 
-    callerHup() {
-        this.log.info('caller hung up');
-        this.setState({
-            softphoneState: state.Call.CLEAR,
-            softphoneFrom: null,
-        });
+    // softphone actions
+    clear() {
+        if (!this.state.softphoneClearAction) {
+            console.log('CLEAR ACTION UNDEFINED');
+            return;
+        }
+
+        this.state.softphoneClearAction();
     }
 
-    // work actions
+    holdCustomer() {
+        if (!this.state.workTask) {
+            console.error('CONF INFO UNDEFINED');
+            return;
+        }
+
+        twilio.holdCustomer(this.state.workTask.sid);
+    }
+
+    retrieveCustomer() {
+        twilio.holdCustomer(this.state.workTask.sid);
+    }
+
+    // work callbacks
     connected() {
         this.log.info('Twilio.TaskRouter.Worker Websocket has connected');
     }
@@ -227,17 +248,6 @@ class App extends React.Component {
     reservationCreated(reservation) {
         this.log.checkpoint();
         this.log.info(`Reservation ${reservation.sid} incoming!`);
-
-        /*
-        reservation.conference(null, null, null, null, (error, res) => {
-            if (error) {
-                console.error(error);
-                return;
-            }
-
-            res.accept();
-        }, { From: '12104056986' });
-        */
     }
 
     reservationAccepted(reservation) {
@@ -257,22 +267,15 @@ class App extends React.Component {
         this.log.info(`Reservation ${reservation.sid} canceled!`);
     }
 
+    // work actions
     changeActivity(event) {
         const activitySid = event.target.value;
         this.log.info('changing activity');
-        this.state.workWorker.update({ ActivitySid: activitySid }, (error, worker) => {
+        this.state.workWorker.update({ ActivitySid: activitySid }, (error, _worker) => {
             if (error) {
                 this.log.error(error);
             }
         });
-    }
-
-    blindTransfer() {
-        console.log('BLIND');
-    }
-
-    warmTransfer() {
-        console.log('WARM');
     }
 
     render() {
@@ -309,7 +312,8 @@ class App extends React.Component {
                         <SoftPhone
                             state={this.state.softphoneState}
                             from={this.state.softphoneFrom}
-                            clear={this.state.softphoneClearAction} />
+                            clear={this.clear}
+                            holdCustomer={this.holdCustomer} />
 
                         <br />
 
