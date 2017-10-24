@@ -1,25 +1,25 @@
-let path = require('path'),
-    express = require('express'),
-    morgan = require('morgan'),
-    bodyParser = require('body-parser'),
-    config = require('../config'),
-    token = require('../models/token');
+const path = require('path');
+const express = require('express');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+
+const config = require('../config');
 
 const CallControl = require('../service/call_control');
+const WorkRouting = require('../service/work_routing');
+const service = require('../service/service');
 
-let twilio = require('twilio');
+<<<<<<< HEAD
+=======
+const twilio = require('twilio');
 
-let VoiceResponse = twilio.twiml.VoiceResponse;
-
-// Create a Twilio REST API client for authenticated requests to Twilio
-let twilio_client = twilio(config.accountSid, config.authToken);
-
+>>>>>>> top level service objects
 // Create a Mongoose object to connect with MongoDB
-let mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 // Makes connection asynchronously.  Mongoose will queue up database
 // operations and release them when the connection is complete.
-mongoose.connect(config.mongodbURI, { useMongoClient: true }, (err, res) => {
+mongoose.connect(config.mongodbURI, { useMongoClient: true }, (err, _res) => {
     if (err) {
         console.log('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
     } else {
@@ -28,10 +28,17 @@ mongoose.connect(config.mongodbURI, { useMongoClient: true }, (err, res) => {
 });
 
 // load the model schema
-let AssignmentCallback = require('../models/AssignmentCallback');
-let WorkspaceEvent = require('../models/WorkspaceEvent');
+// let AssignmentCallback = require('../models/AssignmentCallback');
+const WorkspaceEvent = require('../models/WorkspaceEvent');
+const VoiceEvent = require('../models/VoiceEvent');
+const CallLeg = require('../models/CallLeg');
+const token = require('../models/token');
 
-const CallLeg = mongoose.model('CallLeg', new mongoose.Schema({}, { strict: false }));
+// Create a Twilio REST API client for authenticated requests to Twilio
+
+const twilioClient = twilio(config.accountSid, config.authToken);
+const callControl = new CallControl(twilioClient, config.accountSid, config.twilioNumber);
+const workRouting = new WorkRouting(twilioClient);
 
 // Configure application routes
 module.exports = (app) => {
@@ -50,7 +57,6 @@ module.exports = (app) => {
     // Use morgan for HTTP request logging
     app.use(morgan('combined'));
 
-
     /* CUSTOMER EXPERIENCE HANDLERS */
 
     // Home Page with Click to Call
@@ -65,21 +71,10 @@ module.exports = (app) => {
         // necessary should we want to augment the tasks with something else.
         const taskAttributes = request.body;
 
-        twilio_client.taskrouter.v1
-            .workspaces(config.workspaceSid)
-            .tasks
-            .create({
-                workflowSid: config.workflowSid,
-                taskChannel: 'voice',
-                attributes: JSON.stringify(taskAttributes),
-            }).then((_message) => {
-                response.send({
-                    message: `Thank you, we will contact you via ${config.twilioNumber}`,
-                });
-            }).catch((error) => {
-                console.error(error);
-                response.status(500).send(error);
-            });
+        new service.CallbackRequested()
+            .do(config.workspaceSid, config.workflowSid, taskAttributes)
+            .then((message) => { response.send({ message }); })
+            .catch((error) => { response.status(500).send(error); });
     });
 
 
@@ -125,137 +120,44 @@ module.exports = (app) => {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log('ASSIGNMENT CALLBACK', request.query, request.body);
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
-
-        const callbackResponse = {
-            accept: true,
-            from: config.twilioNumber,
-            instruction: 'call',
-            record: 'record-from-answer',
-            timeout: 10,
-            url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
-            status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
-        };
-
-        response.status(200).send(callbackResponse);
+        new service.AgentAssigned(callControl)
+            .do(workspaceSid, taskSid)
+            .then((instruction) => { response.status(200).send(instruction); })
+            .catch((error) => { response.status(500).send(error); });
     });
 
     // WHEN AGENT ANSWERS CALL
     // whisper to agent; join conference for task; call customer
     app.post('/callbacks/ctc-agent-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log('CTC AGENT ANSWERS', request.query, request.body);
-
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
         const agentCallSid = request.body.CallSid;
-
-        twilio_client.taskrouter.v1
-            .workspaces(workspaceSid)
-            .tasks(taskSid)
-            .fetch()
-            .then((task) => {
-                const taskAttributes = JSON.parse(task.attributes);
-                const customerNumber = taskAttributes.phoneNumber;
-                const twimlResponse = new VoiceResponse();
-                twimlResponse.say('Click-To-Call requested. Please hold for customer connection.', { voice: 'man' });
-                twimlResponse.say('Hi agent, This call may be monitored or recorded for quality and training purposes.');
-                const dial = twimlResponse.dial({
-                    callerId: config.twilioNumber,
-                    record: 'record-from-answer-dual',
-                });
-                dial.conference(taskSid);
-                response.send(twimlResponse.toString());
-
-                // save agent leg
-                CallLeg.create({
-                    taskSid: taskSid,
-                    callSid: agentCallSid,
-                    role: 'agent',
-                    action: 'join',
-                    time: (new Date()).getTime(),
-                }, (err, record) => {
-                    if (err) {
-                        console.error('ERROR SAVING AGENT LEG', err);
-                        return;
-                    }
-
-                    console.log('AGENT LEG', record);
-
-                    // call customer right now
-                    twilio_client.calls.create({
-                        url: `https://${request.headers.host}/callbacks/ctc-customer-answers?TaskSid=${taskSid}`,
-                        to: customerNumber,
-                        from: config.twilioNumber,
-                    }).then((call) => {
-                        console.log(`customer call created: ${call.sid}`);
-                        // SAVE CUSTOMER SID HERE!
-                        const customerCallSid = call.sid;
-                        CallLeg.create({
-                            taskSid: taskSid,
-                            callSid: customerCallSid,
-                            role: 'customer',
-                            action: 'join',
-                            time: (new Date()).getTime(),
-                        }, (err, record) => {
-                            if (err) {
-                                console.error('ERROR SAVING CUSTOMER LEG', err);
-                                return;
-                            }
-                            console.log('CUSTOMER LEG', record);
-
-                            CallLeg.find({ taskSid: taskSid }).exec((err, result) => {
-                                if (err) {
-                                    console.error('ERROR FINDING LEGS', err);
-                                    return;
-                                }
-                                console.log('CALL LEGS:', result);
-                            });
-                        });
-                    });
-                });
-            }, (error) => {
-                console.log('ERROR', error);
-                response.status(500).send(error);
-            });
+        new service.AgentAnswers(callControl, workRouting, CallLeg)
+            .do(taskSid, agentCallSid, workspaceSid)
+            .then((twimlResponse) => { response.send(twimlResponse.toString()); })
+            .catch((error) => { response.status(500).send(error); });
     });
 
     // WHEN AGENT CLEARS
     // mark task complete
     app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log('CTC AGENT COMPLETE');
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
-
-        // complete the task
-        twilio_client.taskrouter.v1
-            .workspaces(workspaceSid)
-            .tasks(taskSid)
-            .update({ assignmentStatus: 'completed', reason: 'call clear' })
-            .then((task) => {
-                console.log('TASK COMPLETE', task.assignmentStatus, task.reason);
-                response.status(200).send('OK');
-            }, (error) => {
-                console.log('ERROR', error);
-                response.status(500).send(error);
-            });
+        new service.AgentComplete(workRouting)
+            .do(workspaceSid, taskSid)
+            .then((_task) => { response.status(200).send('OK'); })
+            .catch((error) => { response.status(500).send(error); });
     });
 
     // WHEN CUSTOMER ANSWERS
     // whisper to customer; join conference for task
     app.post('/callbacks/ctc-customer-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log('CUSTOMER ANSWER', request.query, request.body);
-
-        const twimlResponse = new VoiceResponse();
         const taskSid = request.query.TaskSid;
-        twimlResponse.say('Heyo customer, This call may be monitored or recorded for quality and training purposes.');
-        const dial = twimlResponse.dial({
-            callerId: config.twilioNumber,
-            record: 'record-from-answer-dual',
-        });
-        dial.conference(taskSid);
-        response.send(twimlResponse.toString());
+        new service.CustomerAnswers(callControl)
+            .do(taskSid)
+            .then((twimlResponse) => { response.send(twimlResponse.toString()); });
     });
 
 
@@ -263,42 +165,36 @@ module.exports = (app) => {
 
     // Twilio Voice Call Status Change Webhook
     app.post('/events/voice', (request, response) => {
-        response.status(200).send('OK');
+        const attributes = request.body;
+        new service.ConsumeVoiceEvent(VoiceEvent)
+            .do(attributes)
+            .then(() => { response.status(200).send('OK'); })
+            .catch((err) => { response.status(500).send(err); });
     });
 
-    // For a full list of what will be posted, please refer to the following
-    // url: https://www.twilio.com/docs/api/taskrouter/events#event-callbacks
     app.post('/events/workspaces', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        console.log('WORKSPACE EVENT', request.body.EventType, request.body.EventDescription);
-        response.status(200).send('OK');
-        /* TODO getting error on WorkspaceEvent not being a constructor, silencing for now
-        var attributes = request.body;
-        var workspaceEvent = new WorkspaceEvent(attributes);
-        workspaceEvent.save(function (err) {
-            if (!err) {
-                response.status(200).send('OK');
-            } else {
-                console.error(err);
-                response.status(500).send(err);
-            };
-        });
-        */
+        const attributes = request.body;
+        new service.ConsumeWorkspaceEvent(WorkspaceEvent)
+            .do(attributes)
+            .then(() => { response.status(200).send('OK'); })
+            .catch((err) => { response.status(500).send(err); });
     });
 
     /* CALL CONTROL */
 
-    app.post('/hold-conf-participant', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        const { conferenceSid, participantSid } = request.params;
-        const callControl = new CallControl(twilio_client, config.accountSid);
+    app.post('/hold-customer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        const { conferenceSid } = request.params;
+        new service.HoldCustomer(callControl, CallLeg)
+            .do(conferenceSid)
+            .then((resp) => { response.status(200).send(resp); })
+            .catch((err) => { response.status(500).send(err); });
+    });
 
-        callControl.holdConfParticipant(conferenceSid, participantSid)
-            .then((resp) => {
-                console.log(resp);
-                response.status(200).send(resp);
-            })
-            .catch((error) => {
-                console.error(resp);
-                response.status(500).send(error);
-            });
+    app.post('/retrieve-customer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        const { conferenceSid } = request.params;
+        new service.RetrieveCustomer(callControl, CallLeg)
+            .do(conferenceSid)
+            .then((resp) => { response.status(200).send(resp); })
+            .catch((err) => { response.status(500).send(err); });
     });
 };
