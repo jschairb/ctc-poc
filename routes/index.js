@@ -97,12 +97,21 @@ module.exports = (app) => {
     });
 
     app.get('/worker-token', (request, response) => {
+        const agentName = request.query.agentName;
+
+        const agentToWorker = {
+            agent1: config.worker1Sid,
+            agent2: config.worker2Sid,
+        };
+
+        const workerSid = agentToWorker[agentName];
+
         const tok = token.getWorkerToken(
             request.query.agentName,
             config.accountSid,
             config.authToken,
             config.workspaceSid,
-            config.workerSid
+            workerSid
         );
         response.send(tok);
     });

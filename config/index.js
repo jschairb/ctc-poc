@@ -30,6 +30,7 @@ module.exports = {
     // workspace stuffs
     workspaceSid: process.env.WORKSPACE_SID,
     workflowSid: process.env.WORKFLOW_SID,
-    workerSid: process.env.WORKER_SID,
+    worker1Sid: process.env.WORKER1_SID,
+    worker2Sid: process.env.WORKER2_SID,
     channelId: process.env.CHANNEL_ID,
 };
