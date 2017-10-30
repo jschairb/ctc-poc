@@ -18,9 +18,9 @@ const mongoose = require('mongoose');
 // operations and release them when the connection is complete.
 mongoose.connect(config.mongodbURI, { useMongoClient: true }, (err, _res) => {
     if (err) {
-        console.log('ERROR connecting to: ' + config.mongodbURI + '. ' + err);
+        console.log(`ERROR connecting to: ${config.mongodbURI}. ${err}`);
     } else {
-        console.log('Succeeded connected to: ' + config.mongodbURI);
+        console.log(`Succeeded connected to: ${config.mongodbURI}`);
     }
 });
 
@@ -79,7 +79,7 @@ module.exports = (app) => {
 
     app.get('/agent', (request, response) => {
         const p = path.join(process.cwd(), 'public', 'agent.html');
-        response.sendfile(p);
+        response.sendFile(p);
     });
 
     app.get('/client-token', (request, response) => {
@@ -88,7 +88,7 @@ module.exports = (app) => {
     });
 
     app.get('/worker-token', (request, response) => {
-        const agentName = request.query.agentName;
+        const { agentName } = request.query.agentName;
 
         const agentToWorker = {
             agent1: config.worker1Sid,
