@@ -125,7 +125,10 @@ module.exports = (app) => {
         new service.AgentAssigned(callControl)
             .do(workspaceSid, taskSid)
             .then((instruction) => { response.status(200).send(instruction); })
-            .catch((error) => { response.status(500).send(error); });
+            .catch((error) => {
+                console.log("ERROR /assignment_callbacks:", error);
+                response.status(500).send(error);
+            });
     });
 
     // WHEN AGENT ANSWERS CALL
