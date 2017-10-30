@@ -68,10 +68,13 @@ module.exports = (app) => {
         // necessary should we want to augment the tasks with something else.
         const taskAttributes = request.body;
 
-        new service.CallbackRequested()
+        new service.CallbackRequested(callControl, workRouting)
             .do(config.workspaceSid, config.workflowSid, taskAttributes)
             .then((message) => { response.send({ message }); })
-            .catch((error) => { response.status(500).send(error); });
+            .catch((error) => {
+                console.log("ERROR /call:", error);
+                response.status(500).send(error);
+            });
     });
 
 
