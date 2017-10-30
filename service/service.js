@@ -17,15 +17,15 @@ class AgentAssigned {
         this.callControl = callControl;
     }
 
-    async do(workspaceSid, taskSid) {
+    async do(workspaceSid, agentAnswersURL, agentCompleteURL) {
         return {
             accept: true,
             from: this.callControl.twilioNumber,
             instruction: 'call',
             record: 'record-from-answer',
             timeout: 10,
-            url: `https://${request.headers.host}/callbacks/ctc-agent-answers?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
-            status_callback_url: `https://${request.headers.host}/callbacks/ctc-agent-complete?WorkspaceSid=${workspaceSid}&TaskSid=${taskSid}`,
+            url: agentAnswersURL,
+            status_callback_url: agentCompleteURL,
         };
     }
 }
@@ -37,14 +37,14 @@ class AgentAnswers {
         this.CallLeg = CallLeg;
     }
 
-    async do(taskSid, agentCallSid, workspaceSid) {
+    async do(taskSid, agentCallSid, workspaceSid, customerAnswersURL) {
         await this.CallLeg.createAgentLeg(taskSid, agentCallSid);
 
         const task = await this.workRouting.loadTask(workspaceSid, taskSid);
         const taskAttributes = JSON.parse(task.attributes);
         const customerNumber = taskAttributes.phoneNumber;
 
-        const customerCall = await this.callControl.createCustomerCall(customerNumber, taskSid);
+        const customerCall = await this.callControl.createCustomerCall(customerNumber, taskSid, customerAnswersURL);
         await this.CallLeg.createCustomerLeg(taskSid, customerCall.sid);
 
         const twimlResponse = new twilio.twiml.VoiceResponse();

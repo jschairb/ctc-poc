@@ -7,6 +7,7 @@ const config = require('../config');
 
 const CallControl = require('../service/call_control');
 const WorkRouting = require('../service/work_routing');
+const WebhookRouter = require('../service/webhook_router');
 const service = require('../service/service');
 
 const twilio = require('twilio');
@@ -36,6 +37,23 @@ const token = require('../models/token');
 const twilioClient = twilio(config.accountSid, config.authToken);
 const callControl = new CallControl(twilioClient, config.accountSid, config.twilioNumber);
 const workRouting = new WorkRouting(twilioClient);
+
+const WEBHOOK_SPEC = {
+    agentAnswers: {
+        path: '/callbacks/ctc-agent-answers',
+        params: ['WorkspaceSid', 'TaskSid'],
+    },
+
+    agentComplete: {
+        path: '/callbacks/ctc-agent-complete',
+        params: ['WorkspaceSid', 'TaskSid'],
+    },
+
+    customerAnswers: {
+        url: '/callbacks/ctc-customer-answers',
+        params: ['TaskSid'],
+    },
+};
 
 // Configure application routes
 module.exports = (app) => {
@@ -72,7 +90,7 @@ module.exports = (app) => {
             .do(config.workspaceSid, config.workflowSid, taskAttributes)
             .then((message) => { response.send({ message }); })
             .catch((error) => {
-                console.log("ERROR /call:", error);
+                console.log(`ERROR ${request.route.path}`, error);
                 response.status(500).send(error);
             });
     });
@@ -120,43 +138,60 @@ module.exports = (app) => {
     // https://www.twilio.com/docs/api/taskrouter/handling-assignment-callbacks
     // This must respond within 5 seconds or it will move the Fallback URL.
     app.post('/assignment_callbacks', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        const whRouter = new WebhookRouter(`https://${request.headers.host}`, WEBHOOK_SPEC);
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
-        new service.AgentAssigned(callControl)
+        new service.AgentAssigned(
+            callControl,
+            whRouter.webhook('agentAnswers', workspaceSid, taskSid),
+            whRouter.webhook('agentComplete', workspaceSid, taskSid),
+        )
             .do(workspaceSid, taskSid)
             .then((instruction) => { response.status(200).send(instruction); })
             .catch((error) => {
-                console.log("ERROR /assignment_callbacks:", error);
+                console.log(`ERROR ${request.route.path}`, error);
                 response.status(500).send(error);
             });
     });
 
     // WHEN AGENT ANSWERS CALL
     // whisper to agent; join conference for task; call customer
-    app.post('/callbacks/ctc-agent-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+    app.post(WEBHOOK_SPEC.agentAnswers.path, twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        const whRouter = new WebhookRouter(`https://${request.headers.host}`, WEBHOOK_SPEC);
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
         const agentCallSid = request.body.CallSid;
         new service.AgentAnswers(callControl, workRouting, CallLeg)
-            .do(taskSid, agentCallSid, workspaceSid)
+            .do(
+                taskSid,
+                agentCallSid,
+                workspaceSid,
+                whRouter.webhook('customerAnswers', { TaskSid: taskSid }),
+            )
             .then((twimlResponse) => { response.send(twimlResponse.toString()); })
-            .catch((error) => { response.status(500).send(error); });
+            .catch((error) => {
+                console.log(`ERROR ${request.route.path}`, error);
+                response.status(500).send(error);
+            });
     });
 
     // WHEN AGENT CLEARS
     // mark task complete
-    app.post('/callbacks/ctc-agent-complete', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+    app.post(WEBHOOK_SPEC.agentComplete.path, twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
         new service.AgentComplete(workRouting)
             .do(workspaceSid, taskSid)
             .then((_task) => { response.status(200).send('OK'); })
-            .catch((error) => { response.status(500).send(error); });
+            .catch((error) => {
+                console.log(`ERROR ${request.route.path}`, error);
+                response.status(500).send(error);
+            });
     });
 
     // WHEN CUSTOMER ANSWERS
     // whisper to customer; join conference for task
-    app.post('/callbacks/ctc-customer-answers', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+    app.post(WEBHOOK_SPEC.customerAnswers.path, twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
         const taskSid = request.query.TaskSid;
         new service.CustomerAnswers(callControl)
             .do(taskSid)

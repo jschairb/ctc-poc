@@ -1,5 +1,3 @@
-const twilio = require('twilio');
-
 const holdUrl = 'http://twimlets.com/holdmusic';
 
 // TODO move base url into class
@@ -10,10 +8,10 @@ class CallControl {
         this.twilioNumber = twilioNumber;
     }
 
-    createCustomerCall(customerNumber, conferenceSid) {
+    createCustomerCall(customerNumber, conferenceSid, customerAnswersURL) {
         return new Promise((resolve, reject) => {
             this.twilioClient.calls.create({
-                url: `https://${request.headers.host}/callbacks/ctc-customer-answers?TaskSid=${conferenceSid}`, // TODO pass url generator for this
+                url: customerAnswersURL,
                 to: customerNumber,
                 from: this.twilioNumber,
             })
