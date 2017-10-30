@@ -9,11 +9,8 @@ const CallControl = require('../service/call_control');
 const WorkRouting = require('../service/work_routing');
 const service = require('../service/service');
 
-<<<<<<< HEAD
-=======
 const twilio = require('twilio');
 
->>>>>>> top level service objects
 // Create a Mongoose object to connect with MongoDB
 const mongoose = require('mongoose');
 
