@@ -143,8 +143,8 @@ module.exports = (app) => {
         const taskSid = request.body.TaskSid;
         new service.AgentAssigned(
             callControl,
-            whRouter.webhook('agentAnswers', workspaceSid, taskSid),
-            whRouter.webhook('agentComplete', workspaceSid, taskSid),
+            whRouter.webhook('agentAnswers', { WorkspaceSid: workspaceSid, TaskSid: taskSid }),
+            whRouter.webhook('agentComplete', { WorkspaceSid: workspaceSid, TaskSid: taskSid }),
         )
             .do(workspaceSid, taskSid)
             .then((instruction) => {
