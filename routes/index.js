@@ -147,7 +147,10 @@ module.exports = (app) => {
             whRouter.webhook('agentComplete', workspaceSid, taskSid),
         )
             .do(workspaceSid, taskSid)
-            .then((instruction) => { response.status(200).send(instruction); })
+            .then((instruction) => {
+                console.log("INS", instruction);
+                response.status(200).send(instruction);
+            })
             .catch((error) => {
                 console.log(`ERROR ${request.route.path}`, error);
                 response.status(500).send(error);
