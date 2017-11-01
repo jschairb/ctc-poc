@@ -17,7 +17,7 @@ class AgentAssigned {
         this.callControl = callControl;
     }
 
-    async do(workspaceSid, agentAnswersURL, agentCompleteURL) {
+    async do(agentAnswersURL, agentCompleteURL) {
         return {
             accept: true,
             from: this.callControl.twilioNumber,

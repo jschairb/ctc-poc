@@ -141,12 +141,11 @@ module.exports = (app) => {
         const whRouter = new WebhookRouter(`https://${request.headers.host}`, WEBHOOK_SPEC);
         const workspaceSid = request.body.WorkspaceSid;
         const taskSid = request.body.TaskSid;
-        new service.AgentAssigned(
-            callControl,
-            whRouter.webhook('agentAnswers', { WorkspaceSid: workspaceSid, TaskSid: taskSid }),
-            whRouter.webhook('agentComplete', { WorkspaceSid: workspaceSid, TaskSid: taskSid }),
-        )
-            .do(workspaceSid, taskSid)
+        const agentAnswerURL = whRouter.webhook('agentAnswers', { WorkspaceSid: workspaceSid, TaskSid: taskSid });
+        const agentCompleteURL = whRouter.webhook('agentComplete', { WorkspaceSid: workspaceSid, TaskSid: taskSid });
+
+        new service.AgentAssigned(callControl)
+            .do(agentAnswerURL, agentCompleteURL)
             .then((instruction) => {
                 console.log("INS", instruction);
                 response.status(200).send(instruction);
