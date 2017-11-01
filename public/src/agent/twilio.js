@@ -1,36 +1,34 @@
+/* global fetch:false */
+/* global Twilio:false */
 // import twilio from 'twilio.min';
 
 function setupDevice(token, established, cleared, callerHup, alerting) {
 
     return new Promise((resolve, reject) => {
         Twilio.Device.setup(token, {
-            debug: true, region: 'us1' // TODO move these to config
+            debug: true,
+            region: 'us1', // TODO move these to config
         });
 
-        Twilio.Device.ready(function (device) {
-            resolve();
-        });
+        Twilio.Device.ready((_device) => { resolve(); });
+        Twilio.Device.error((err) => { reject(err); });
 
-        Twilio.Device.error(function (err) {
-            reject(err);
-        });
-
-        Twilio.Device.connect(function (conn) {
+        Twilio.Device.connect((conn) => {
             established(conn.parameters.From, () => { conn.disconnect() });
         });
 
-        Twilio.Device.disconnect(function (conn) {
+        Twilio.Device.disconnect((_conn) => {
             cleared();
         });
 
-        Twilio.Device.cancel(function (conn) {
+        Twilio.Device.cancel((_conn) => {
             callerHup();
         });
 
-        Twilio.Device.incoming(function (conn) {
+        Twilio.Device.incoming((conn) => {
             alerting(conn.parameters.From,
-                () => { conn.accept() },
-                () => { conn.reject() }
+                () => { conn.accept(); },
+                () => { conn.reject(); },
             );
         });
     });
@@ -48,18 +46,18 @@ function setupWorker(
     reservationTimeout,
     reservationCancelled,
 ) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
         const worker = new Twilio.TaskRouter.Worker(token);
-        worker.on("ready", function (worker) { resolve(worker); });
-        worker.on("connected", connected );
-        worker.on("disconnected", disconnected );
+        worker.on('ready', (w) => { resolve(w); });
+        worker.on('connected', connected);
+        worker.on('disconnected', disconnected);
         worker.on('error', error);
         worker.on('activity.update', activityUpdate);
-        worker.on("reservation.created", reservationCreated);
-        worker.on("reservation.accepted", reservationAccepted);
-        worker.on("reservation.rejected", reservationRejected);
-        worker.on("reservation.timeout", reservationTimeout);
-        worker.on("reservation.canceled", reservationCancelled);
+        worker.on('reservation.created', reservationCreated);
+        worker.on('reservation.accepted', reservationAccepted);
+        worker.on('reservation.rejected', reservationRejected);
+        worker.on('reservation.timeout', reservationTimeout);
+        worker.on('reservation.canceled', reservationCancelled);
     });
 }
 
@@ -75,8 +73,18 @@ function getActivities(worker) {
     });
 }
 
+function holdCustomer(conferenceSid) {
+    return fetch(`/hold-customer?conferenceSid=${conferenceSid}`);
+}
+
+function retrieveCustomer(conferenceSid) {
+    return fetch(`/retrieve-customer?conferenceSid=${conferenceSid}`);
+}
+
 export {
     setupDevice,
     setupWorker,
     getActivities,
-}
+    holdCustomer,
+    retrieveCustomer,
+};

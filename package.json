@@ -22,8 +22,8 @@
   "author": "Josh Schairbaum",
   "license": "MIT",
   "engines": {
-    "node": "6.11.2",
-    "npm": "4.6.1"
+    "node": "8.7.0",
+    "npm": "5.5.1"
   },
   "dependencies": {
     "ajv": "^5.2.3",
