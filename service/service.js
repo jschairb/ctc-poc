@@ -31,10 +31,11 @@ class AgentAssigned {
 }
 
 class AgentAnswers {
-    constructor(callControl, workRouting, CallLeg) {
+    constructor(callControl, workRouting, CallLeg, twilioNumber) {
         this.callControl = callControl;
         this.workRouting = workRouting;
         this.CallLeg = CallLeg;
+        this.twilioNumber = twilioNumber;
     }
 
     async do(taskSid, agentCallSid, workspaceSid, customerAnswersURL) {

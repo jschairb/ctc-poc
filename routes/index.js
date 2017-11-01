@@ -162,7 +162,7 @@ module.exports = (app) => {
         const workspaceSid = request.query.WorkspaceSid;
         const taskSid = request.query.TaskSid;
         const agentCallSid = request.body.CallSid;
-        new service.AgentAnswers(callControl, workRouting, CallLeg)
+        new service.AgentAnswers(callControl, workRouting, CallLeg, config.twilioNumber)
             .do(
                 taskSid,
                 agentCallSid,
