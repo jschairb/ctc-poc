@@ -50,7 +50,7 @@ const WEBHOOK_SPEC = {
     },
 
     customerAnswers: {
-        url: '/callbacks/ctc-customer-answers',
+        path: '/callbacks/ctc-customer-answers',
         params: ['TaskSid'],
     },
 };
