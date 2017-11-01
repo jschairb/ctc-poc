@@ -7,7 +7,6 @@ class WebhookRouter {
     }
 
     webhook(route, query) {
-        console.log("BB", this.baseUrl);
         const r = this.spec[route];
 
         // assert route exists
@@ -23,7 +22,7 @@ class WebhookRouter {
         });
 
         const str = querystring.stringify(query);
-        return `${this.baseUrl}/${r.path}?${str}`;
+        return `${this.baseUrl}${r.path}?${str}`;
     }
 }
 
