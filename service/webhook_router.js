@@ -7,6 +7,7 @@ class WebhookRouter {
     }
 
     webhook(route, query) {
+        console.log("BB", this.baseUrl);
         const r = this.spec[route];
 
         // assert route exists

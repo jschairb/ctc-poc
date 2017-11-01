@@ -147,7 +147,6 @@ module.exports = (app) => {
         new service.AgentAssigned(callControl)
             .do(agentAnswerURL, agentCompleteURL)
             .then((instruction) => {
-                console.log("INS", instruction);
                 response.status(200).send(instruction);
             })
             .catch((error) => {
