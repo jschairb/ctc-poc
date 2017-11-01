@@ -95,8 +95,10 @@ class HoldCustomer {
     }
 
     async do(conferenceSid) {
-        const customerSid = await this.CallLeg.findCustomer(conferenceSid);
-        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, customerSid);
+        const customerLeg = await this.CallLeg.findCustomerLeg(conferenceSid);
+        const { callSid } = customerLeg.toObject();
+        console.log("HOLD CONF PARTI", customerLeg, callSid);
+        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, callSid);
         return holdResp;
     }
 }
@@ -108,7 +110,7 @@ class RetrieveCustomer {
     }
 
     async do(conferenceSid) {
-        const customerSid = await this.CallLeg.findCustomer(conferenceSid);
+        const customerSid = await this.CallLeg.findCustomerLeg(conferenceSid);
         const holdResp = await this.callControl.retrieveConfParticipant(conferenceSid, customerSid);
         return holdResp;
     }

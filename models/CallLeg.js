@@ -42,9 +42,9 @@ schema.statics.createCustomerLeg = function (conferenceSid, callSid) {
     });
 };
 
-schema.statics.findCustomer = function (conferenceSid) {
+schema.statics.findCustomerLeg = function (conferenceSid) {
     return new Promise((resolve, reject) => {
-        this.find({ taskSid: conferenceSid, role: 'customer' })
+        this.find({ conferenceSid, role: 'customer' })
             .sort()
             .limit(1)
             .exec((err, records) => {

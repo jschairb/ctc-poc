@@ -74,11 +74,21 @@ function getActivities(worker) {
 }
 
 function holdCustomer(conferenceSid) {
-    return fetch(`/hold-customer?conferenceSid=${conferenceSid}`);
+    return fetch('/hold-customer', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conferenceSid }),
+    });
 }
 
 function retrieveCustomer(conferenceSid) {
-    return fetch(`/retrieve-customer?conferenceSid=${conferenceSid}`);
+    return fetch('/retrieve-customer', {
+        method: 'POST',
+        body: JSON.stringify({ conferenceSid }),
+    });
 }
 
 export {

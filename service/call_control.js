@@ -21,6 +21,7 @@ class CallControl {
 
     // see for more info https://www.twilio.com/blog/2016/06/introducing-conference-hold.html
     holdConfParticipant(conferenceSid, participantSid) {
+        console.log("HOLD CONF PARTICIPANT", conferenceSid, participantSid);
         return new Promise((resolve, reject) => {
             this.twilioClient.api
                 .accounts(this.accountSid)
