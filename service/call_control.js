@@ -44,6 +44,17 @@ class CallControl {
                 .done();
         });
     }
+
+    conferenceSidByFriendlyName(friendlyName) {
+        return new Promise((resolve, reject) => {
+            this.twilioClient.api
+                .conferences.each({ friendlyName }, (conference) => {
+                    resolve(conference.sid);
+                }, (error) => {
+                    reject(error);
+                });
+        });
+    }
 }
 
 module.exports = CallControl;

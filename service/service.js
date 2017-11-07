@@ -83,7 +83,7 @@ class CustomerAnswers {
             callerId: this.callControl.twilioNumber,
             record: 'record-from-answer-dual',
         });
-        dial.conference(taskSid);
+        dial.conference({ endConferenceOnExit: true }, taskSid);
         return twimlResponse;
     }
 }
@@ -95,10 +95,10 @@ class HoldCustomer {
     }
 
     async do(conferenceSid) {
+        const realConfSid = await this.callControl.conferenceSidByFriendlyName(conferenceSid); // get conferenceSid from api
         const customerLeg = await this.CallLeg.findCustomerLeg(conferenceSid);
         const { callSid } = customerLeg.toObject();
-        console.log("HOLD CONF PARTI", customerLeg, callSid);
-        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, callSid);
+        const holdResp = await this.callControl.holdConfParticipant(realConfSid, callSid);
         return holdResp;
     }
 }

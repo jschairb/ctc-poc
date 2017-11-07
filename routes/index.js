@@ -225,12 +225,16 @@ module.exports = (app) => {
     /* CALL CONTROL */
 
     app.post('/hold-customer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
+        console.log('HOLD CUSTOMER');
         const { conferenceSid } = request.body;
         new service.HoldCustomer(callControl, CallLeg)
             .do(conferenceSid)
-            .then((resp) => { response.status(200).send(resp); })
+            .then((resp) => {
+                console.log('RESP', resp);
+                response.status(200).send(resp);
+            })
             .catch((err) => {
-                console.log(`ERROR ${request.route.path}`, err);
+                console.error(`ERROR ${request.route.path}`, err);
                 response.status(500).send(err);
             });
     });
