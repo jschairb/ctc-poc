@@ -95,7 +95,7 @@ class HoldCustomer {
     }
 
     async do(conferenceSid) {
-        const realConfSid = await this.callControl.conferenceSidByFriendlyName(conferenceSid); // get conferenceSid from api
+        const realConfSid = await this.callControl.conferenceSidByFriendlyName(conferenceSid); // TODO can this be done once?
         const customerLeg = await this.CallLeg.findCustomerLeg(conferenceSid);
         const { callSid } = customerLeg.toObject();
         const holdResp = await this.callControl.holdConfParticipant(realConfSid, callSid);
