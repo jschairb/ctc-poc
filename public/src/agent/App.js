@@ -218,7 +218,6 @@ class App extends React.Component {
             console.error('CONF INFO UNDEFINED');
             return;
         }
-        console.log("ZZZZ",this.state);
         twilio.holdCustomer(this.state.workTask.sid);
     }
 
