@@ -8,7 +8,7 @@ class CallControl {
         this.twilioNumber = twilioNumber;
     }
 
-    createCustomerCall(customerNumber, conferenceSid, customerAnswersURL) {
+    createCustomerCall(customerNumber, conferenceName, customerAnswersURL) {
         return new Promise((resolve, reject) => {
             this.twilioClient.calls.create({
                 url: customerAnswersURL,

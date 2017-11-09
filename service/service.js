@@ -94,11 +94,11 @@ class HoldCustomer {
         this.CallLeg = CallLeg;
     }
 
-    async do(conferenceSid) {
-        const realConfSid = await this.callControl.conferenceSidByFriendlyName(conferenceSid); // TODO can this be done once?
-        const customerLeg = await this.CallLeg.findCustomerLeg(conferenceSid);
+    async do(conferenceName) {
+        const conferenceSid = await this.callControl.conferenceSidByFriendlyName(conferenceName); // TODO can this be done once?
+        const customerLeg = await this.CallLeg.findCustomerLeg(conferenceName);
         const { callSid } = customerLeg.toObject();
-        const holdResp = await this.callControl.holdConfParticipant(realConfSid, callSid);
+        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, callSid);
         return holdResp;
     }
 }
@@ -109,9 +109,9 @@ class RetrieveCustomer {
         this.CallLeg = CallLeg;
     }
 
-    async do(conferenceSid) {
-        const customerSid = await this.CallLeg.findCustomerLeg(conferenceSid);
-        const holdResp = await this.callControl.retrieveConfParticipant(conferenceSid, customerSid);
+    async do(conferenceName) {
+        const customerSid = await this.CallLeg.findCustomerLeg(conferenceName);
+        const holdResp = await this.callControl.retrieveConfParticipant(conferenceName, customerSid);
         return holdResp;
     }
 }
