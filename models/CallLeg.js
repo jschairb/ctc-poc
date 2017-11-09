@@ -4,10 +4,10 @@ const mongoose = require('mongoose');
 
 const schema = new mongoose.Schema({}, { strict: false });
 
-schema.statics.createAgentLeg = function (conferenceSid, callSid) {
+schema.statics.createAgentLeg = function (conferenceName, callSid) {
     return new Promise((resolve, reject) => {
         this.create({
-            conferenceSid,
+            conferenceName,
             callSid,
             role: 'agent',
             action: 'join',
@@ -23,10 +23,10 @@ schema.statics.createAgentLeg = function (conferenceSid, callSid) {
     });
 };
 
-schema.statics.createCustomerLeg = function (conferenceSid, callSid) {
+schema.statics.createCustomerLeg = function (conferenceName, callSid) {
     return new Promise((resolve, reject) => {
         this.create({
-            conferenceSid,
+            conferenceName,
             callSid,
             role: 'customer',
             action: 'join',
@@ -42,9 +42,9 @@ schema.statics.createCustomerLeg = function (conferenceSid, callSid) {
     });
 };
 
-schema.statics.findCustomer = function (conferenceSid) {
+schema.statics.findCustomerLeg = function (conferenceName) {
     return new Promise((resolve, reject) => {
-        this.find({ taskSid: conferenceSid, role: 'customer' })
+        this.find({ conferenceName, role: 'customer' })
             .sort()
             .limit(1)
             .exec((err, records) => {
@@ -54,7 +54,7 @@ schema.statics.findCustomer = function (conferenceSid) {
                 }
 
                 if (records.length < 1) {
-                    reject(new Error(`no customer leg found for ${conferenceSid}`));
+                    reject(new Error(`no customer leg found for ${conferenceName}`));
                 }
 
                 const [customerSid] = records;

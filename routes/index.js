@@ -69,6 +69,9 @@ module.exports = (app) => {
         extended: true,
     }));
 
+    // parse application/json
+    app.use(bodyParser.json());
+
     // Use morgan for HTTP request logging
     app.use(morgan('combined'));
 
@@ -222,18 +225,26 @@ module.exports = (app) => {
     /* CALL CONTROL */
 
     app.post('/hold-customer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        const { conferenceSid } = request.params;
+        const { conferenceName } = request.body;
         new service.HoldCustomer(callControl, CallLeg)
-            .do(conferenceSid)
-            .then((resp) => { response.status(200).send(resp); })
-            .catch((err) => { response.status(500).send(err); });
+            .do(conferenceName)
+            .then((_resp) => {
+                response.status(200).send('OK');
+            })
+            .catch((err) => {
+                console.log(`ERROR ${request.route.path}`, err);
+                response.status(500).send(err);
+            });
     });
 
     app.post('/retrieve-customer', twilio.webhook({ validate: config.shouldValidate }), (request, response) => {
-        const { conferenceSid } = request.params;
+        const { conferenceName } = request.body;
         new service.RetrieveCustomer(callControl, CallLeg)
-            .do(conferenceSid)
+            .do(conferenceName)
             .then((resp) => { response.status(200).send(resp); })
-            .catch((err) => { response.status(500).send(err); });
+            .catch((err) => {
+                console.log(`ERROR ${request.route.path}`, err);
+                response.status(500).send(err);
+            });
     });
 };

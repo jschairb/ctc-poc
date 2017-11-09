@@ -31,6 +31,8 @@ function SoftPhone(props) {
                     Clear
                 </button>
 
+                <br />
+
                 <button className="btn btn-danger" onClick={handleHoldCustomerClick}>
                     Hold Customer
                 </button>

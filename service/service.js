@@ -83,7 +83,7 @@ class CustomerAnswers {
             callerId: this.callControl.twilioNumber,
             record: 'record-from-answer-dual',
         });
-        dial.conference(taskSid);
+        dial.conference({ endConferenceOnExit: true }, taskSid);
         return twimlResponse;
     }
 }
@@ -94,9 +94,11 @@ class HoldCustomer {
         this.CallLeg = CallLeg;
     }
 
-    async do(conferenceSid) {
-        const customerSid = await this.CallLeg.findCustomer(conferenceSid);
-        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, customerSid);
+    async do(conferenceName) {
+        const conferenceSid = await this.callControl.conferenceSidByFriendlyName(conferenceName); // TODO can this be done once?
+        const customerLeg = await this.CallLeg.findCustomerLeg(conferenceName);
+        const { callSid } = customerLeg.toObject();
+        const holdResp = await this.callControl.holdConfParticipant(conferenceSid, callSid);
         return holdResp;
     }
 }
@@ -107,9 +109,9 @@ class RetrieveCustomer {
         this.CallLeg = CallLeg;
     }
 
-    async do(conferenceSid) {
-        const customerSid = await this.CallLeg.findCustomer(conferenceSid);
-        const holdResp = await this.callControl.retrieveConfParticipant(conferenceSid, customerSid);
+    async do(conferenceName) {
+        const customerSid = await this.CallLeg.findCustomerLeg(conferenceName);
+        const holdResp = await this.callControl.retrieveConfParticipant(conferenceName, customerSid);
         return holdResp;
     }
 }

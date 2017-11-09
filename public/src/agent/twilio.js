@@ -73,12 +73,22 @@ function getActivities(worker) {
     });
 }
 
-function holdCustomer(conferenceSid) {
-    return fetch(`/hold-customer?conferenceSid=${conferenceSid}`);
+function holdCustomer(conferenceName) {
+    return fetch('/hold-customer', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ conferenceName }),
+    });
 }
 
-function retrieveCustomer(conferenceSid) {
-    return fetch(`/retrieve-customer?conferenceSid=${conferenceSid}`);
+function retrieveCustomer(conferenceName) {
+    return fetch('/retrieve-customer', {
+        method: 'POST',
+        body: JSON.stringify({ conferenceName }),
+    });
 }
 
 export {
